@@ -3,41 +3,57 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import ActivityRibbon from "@/components/charts/ActivityRibbon";
+import DivergenceChart from "@/components/charts/DivergenceChart";
+import MoneyFlow from "@/components/charts/MoneyFlow";
+import { Card, Failed, Loading, Note, Page, Pill, Stat } from "@/components/ui";
 import {
   fetchExperiment,
-  fetchFunnel,
+  fetchFlow,
+  fetchGuardrails,
   fetchIssuerHealth,
+  fetchTimeline,
   verifyLedger,
   type AuditStatus,
   type ClassRow,
   type ExperimentResult,
+  type Flow,
+  type GuardrailReport,
   type IssuerHealth,
+  type Timeline,
 } from "@/lib/api";
-import { CLASS_COLORS, pct, pp, rupeesShort, rupees } from "@/lib/format";
-import { Bar, Card, Failed, Loading, Note, Page, Pill, Stat } from "@/components/ui";
+import { pct, pp, rupees, rupeesShort } from "@/lib/format";
+
+interface Data {
+  experiment: ExperimentResult;
+  perClass: ClassRow[];
+  timeline: Timeline;
+  flow: Flow;
+  guardrails: GuardrailReport;
+  issuers: IssuerHealth[];
+  audit: AuditStatus;
+}
 
 export default function CommandCenter() {
-  const [data, setData] = useState<{
-    overall: ExperimentResult;
-    perClass: ClassRow[];
-    funnel: Record<string, number>;
-    issuers: IssuerHealth[];
-    audit: AuditStatus;
-  } | null>(null);
+  const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
       fetchExperiment(),
-      fetchFunnel("treatment"),
+      fetchTimeline(),
+      fetchFlow(),
+      fetchGuardrails(),
       fetchIssuerHealth(),
       verifyLedger(),
     ])
-      .then(([exp, funnel, issuers, audit]) =>
+      .then(([exp, timeline, flow, guardrails, issuers, audit]) =>
         setData({
-          overall: exp.overall,
+          experiment: exp.overall,
           perClass: exp.per_class,
-          funnel: funnel.by_state,
+          timeline,
+          flow,
+          guardrails,
           issuers: issuers.issuers,
           audit,
         }),
@@ -48,97 +64,145 @@ export default function CommandCenter() {
   if (error) return <Failed error={error} />;
   if (!data) return <Loading what="command center" />;
 
-  const { overall: e, perClass, funnel, issuers, audit } = data;
+  const { experiment: e, perClass, timeline, flow, guardrails, issuers, audit } = data;
   const degraded = issuers.filter((i) => i.degraded);
+  const insignificant = perClass.filter((c) => !c.is_significant);
 
   return (
     <Page
-      title="Command Center"
-      subtitle="One batch of failed payments and overdue invoices, worked end to end and measured against an untouched control arm."
+      kicker="Razorpay AI Buildathon · Track 03"
+      title="Revenue at risk, and what came back"
+      subtitle="725 failed payments and overdue invoices, worked for seven simulated days behind eleven policy gates — and measured against a fifth of the batch the agent was never allowed to touch."
     >
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Stat
-          label="Amount at risk"
-          value={rupeesShort(e.amount_at_risk_paise)}
-          sub={`${e.treatment_n + e.control_n} cases across both arms`}
-        />
-        <Stat
-          label="Net incremental lift"
-          value={pp(e.net_lift)}
-          tone={e.is_significant ? "good" : "warn"}
-          sub={`95% CI ${(e.ci_lower * 100).toFixed(1)} to ${(e.ci_upper * 100).toFixed(1)} · ${
-            e.is_significant ? "significant" : "not significant at this n"
-          }`}
-        />
-        <Stat
-          label="Incremental recovered"
-          value={rupeesShort(e.value_incremental_paise)}
-          tone="accent"
-          sub={`Gross ${rupeesShort(e.treatment_gross_recovered_paise)} minus what the control arm says would have happened anyway`}
-        />
-        <Stat
-          label="Spend"
-          value={rupees(e.intervention_cost_paise)}
-          sub={`${e.roi.toFixed(0)}x on ${e.roi_basis}`}
-        />
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        <Card
-          title="Treatment vs control"
-          hint="The comparison the whole system exists to make"
-          className="lg:col-span-2"
-        >
-          <div className="space-y-5">
-            <ArmBar
-              label="Treatment — worked by the agent"
-              rate={e.treatment_rate}
-              n={e.treatment_n}
-              recovered={e.treatment_recovered}
-              tone="sky"
-            />
-            <ArmBar
-              label="Control — never contacted"
-              rate={e.control_rate}
-              n={e.control_n}
-              recovered={e.control_recovered}
-              tone="zinc"
-            />
-
-            <div className="pt-4 border-t border-zinc-800 grid sm:grid-cols-3 gap-4 text-sm">
-              <Figure label="Case-count lift" value={pp(e.net_lift)} />
-              <Figure label="Value-weighted lift" value={pp(e.value_weighted_lift)} />
-              <Figure
-                label="Break-even lift"
-                value={`${(e.breakeven_lift * 100).toFixed(3)} pp`}
-              />
+      {/* ── The hero. Two numbers, and the honest one is bigger. ───────── */}
+      <div className="grid lg:grid-cols-[1.15fr_1fr] gap-4 mb-4">
+        <div className="bg-[var(--surface)] border border-[var(--line)] rounded-lg p-6 flex flex-col justify-between">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-3)] mb-3">
+              Incremental revenue recovered
+            </div>
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <span className="font-mono font-semibold tracking-tight text-[52px] leading-none text-[var(--recovered)] tnum tick-in">
+                {rupeesShort(e.value_incremental_paise)}
+              </span>
+              <span className="text-sm text-[var(--ink-3)]">
+                of {rupeesShort(e.amount_at_risk_paise)} at risk
+              </span>
             </div>
           </div>
+          <p className="text-sm text-[var(--ink-2)] leading-relaxed mt-5">
+            Gross recovery was{" "}
+            <span className="text-[var(--ink)] font-mono">
+              {rupeesShort(e.treatment_gross_recovered_paise)}
+            </span>
+            . But{" "}
+            <span className="text-[var(--ink)] font-mono">{pct(e.control_rate)}</span>{" "}
+            of untouched cases came back on their own, and that share is not ours
+            to claim. Only the difference is.
+          </p>
+        </div>
 
-          <Note>
-            Gross recovery would read {pct(e.treatment_rate)}, but{" "}
-            {pct(e.control_rate)} of untouched cases came back on their own.
-            Only the difference belongs to the agent. Both lift figures are
-            shown because they disagree: the case-count version weights a small
-            cart the same as a large invoice, the value-weighted one does not.
-          </Note>
+        <div className="grid grid-cols-2 gap-4">
+          <Stat
+            label="Net incremental lift"
+            value={pp(e.net_lift)}
+            tone={e.is_significant ? "good" : "warn"}
+            sub={
+              <>
+                95% CI {(e.ci_lower * 100).toFixed(1)} to{" "}
+                {(e.ci_upper * 100).toFixed(1)}
+                <br />
+                {e.is_significant ? "excludes zero" : "includes zero"}
+              </>
+            }
+          />
+          <Stat
+            label="Spend"
+            value={rupees(e.intervention_cost_paise)}
+            sub={`${e.roi.toFixed(0)}× on ${e.roi_basis}`}
+          />
+          <Stat
+            label="Actions refused"
+            value={guardrails.total_blocks.toLocaleString("en-IN")}
+            tone="warn"
+            sub={`by ${guardrails.gates.filter((g) => g.blocks > 0).length} of 11 gates`}
+          />
+          <Stat
+            label="Audit ledger"
+            value={audit.valid ? "VALID" : "BROKEN"}
+            tone={audit.valid ? "good" : "bad"}
+            sub={`${audit.records.toLocaleString("en-IN")} hash-chained events`}
+          />
+        </div>
+      </div>
+
+      {/* ── The counterfactual, drawn ──────────────────────────────────── */}
+      <Card
+        title="Treatment vs control, over seven days"
+        hint="The wedge between the two lines is the lift. Everything else on this page is downstream of it."
+        aside={
+          <Link
+            href="/experiment"
+            className="text-xs text-[var(--treatment)] hover:underline underline-offset-2"
+          >
+            methodology →
+          </Link>
+        }
+        className="mb-4"
+      >
+        <DivergenceChart
+          rows={timeline.rows}
+          outages={timeline.outages}
+          armTotals={timeline.arm_totals}
+        />
+        <Note>
+          The control arm is assigned by hashing the order id, so it was fixed
+          before anything was known about any case and anyone can recompute it.
+          Control cases are classified and measured but never contacted and never
+          billed — there is a test that fails if a single action lands on one.
+        </Note>
+      </Card>
+
+      {/* ── The rhythm of the work ─────────────────────────────────────── */}
+      <Card
+        title="What the agent did, tick by tick"
+        hint="Two-hour ticks. Sent above the line, refused below."
+        className="mb-4"
+      >
+        <ActivityRibbon rows={timeline.rows} />
+        <Note>
+          Activity collapses to nothing every night — that is the quiet-hours
+          gate, not a gap in the data. The refusal band is thickest on day one,
+          when the issuer is still degraded and the per-customer frequency caps
+          are saturated from the previous system&apos;s outreach.
+        </Note>
+      </Card>
+
+      <div className="grid lg:grid-cols-[1.3fr_1fr] gap-4">
+        <Card
+          title="Where the money went"
+          hint="Bar width is the amount at stake; the filled part came back"
+        >
+          <MoneyFlow classes={flow.by_class} />
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card title="Issuer health" hint="z-scored against each issuer's own baseline">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {issuers.map((i) => (
                 <div
                   key={i.issuer}
-                  className="flex items-center justify-between px-3 py-2 bg-zinc-900/60 rounded border border-zinc-800"
+                  className="flex items-center justify-between px-3 py-2 bg-[var(--surface-inset)] rounded border border-[var(--line)]"
                 >
-                  <span className="text-sm text-zinc-300 font-mono">{i.issuer}</span>
+                  <span className="text-sm font-mono text-[var(--ink-2)]">
+                    {i.issuer}
+                  </span>
                   {i.degraded ? (
-                    <Pill className="text-amber-400 border-amber-500/30 bg-amber-500/10">
+                    <Pill className="text-[var(--warn)] border-[var(--warn)]/30 bg-[var(--warn)]/10">
                       degraded · peak {i.peak_failures_in_window}
                     </Pill>
                   ) : (
-                    <Pill className="text-emerald-400 border-emerald-500/30 bg-emerald-500/10">
+                    <Pill className="text-[var(--recovered)] border-[var(--recovered)]/30 bg-[var(--recovered)]/10">
                       healthy
                     </Pill>
                   )}
@@ -149,145 +213,38 @@ export default function CommandCenter() {
               <Note>
                 {degraded.map((d) => d.issuer).join(", ")} was failing far above
                 its own baseline when the batch began. Retries against it were
-                held rather than spent, and released once it recovered.
+                held rather than spent, and released once it recovered — visible
+                as the amber band on the chart above.
               </Note>
             )}
           </Card>
 
-          <Card title="Audit ledger">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-400">
-                {audit.records.toLocaleString("en-IN")} events
-              </span>
-              {audit.valid ? (
-                <Pill className="text-emerald-400 border-emerald-500/30 bg-emerald-500/10">
-                  chain valid
-                </Pill>
-              ) : (
-                <Pill className="text-rose-400 border-rose-500/30 bg-rose-500/10">
-                  broken at {audit.first_break}
-                </Pill>
-              )}
+          {/* The finding that works against us, on the landing page. */}
+          <Card title="What this batch cannot claim">
+            <div className="space-y-2.5">
+              {insignificant.map((c) => (
+                <div key={c.recovery_class} className="flex items-center gap-3 text-sm">
+                  <span className="font-mono text-xs text-[var(--ink-2)] w-40 shrink-0">
+                    {c.recovery_class}
+                  </span>
+                  <span className="font-mono text-xs text-[var(--ink-3)] tnum">
+                    {pp(c.net_lift)}
+                  </span>
+                  <span className="ml-auto text-[10px] uppercase tracking-wide text-[var(--ink-4)]">
+                    CI includes 0
+                  </span>
+                </div>
+              ))}
             </div>
-            <Link
-              href="/audit"
-              className="block mt-4 text-sm text-sky-400 hover:text-sky-300"
-            >
-              Verify or tamper with the chain →
-            </Link>
+            <Note>
+              {insignificant.length} of {perClass.length} recovery classes cannot
+              be distinguished from doing nothing at this sample size. The
+              aggregate lift is significant; these lanes individually are not,
+              and saying so here is cheaper than being asked.
+            </Note>
           </Card>
         </div>
       </div>
-
-      <div className="grid lg:grid-cols-2 gap-6 mt-6">
-        <Card title="Where the treatment arm ended up">
-          <div className="space-y-3">
-            {Object.entries(funnel)
-              .sort((a, b) => b[1] - a[1])
-              .map(([state, n]) => (
-                <div key={state}>
-                  <div className="flex justify-between text-sm mb-1.5">
-                    <span className="text-zinc-400">{state}</span>
-                    <span className="font-mono text-zinc-300">{n}</span>
-                  </div>
-                  <Bar
-                    value={n}
-                    max={Math.max(...Object.values(funnel))}
-                    tone={state === "RECOVERED" ? "emerald" : "zinc"}
-                  />
-                </div>
-              ))}
-          </div>
-          <Note>
-            Nothing is left in an open state. Every case either recovered or
-            carries a recorded reason it did not — see{" "}
-            <Link href="/exceptions" className="text-sky-400 hover:underline">
-              Exceptions
-            </Link>
-            .
-          </Note>
-        </Card>
-
-        <Card
-          title="Lift by recovery class"
-          hint="Aggregate lift can hide a class that outreach is hurting"
-        >
-          <div className="space-y-2.5">
-            {perClass.map((row) => (
-              <div
-                key={row.recovery_class}
-                className="flex items-center gap-3 text-sm"
-              >
-                <span className="w-40 shrink-0">
-                  <Pill className={CLASS_COLORS[row.recovery_class]}>
-                    {row.recovery_class}
-                  </Pill>
-                </span>
-                <span
-                  className={`font-mono w-20 text-right ${
-                    row.is_significant ? "text-emerald-400" : "text-zinc-500"
-                  }`}
-                >
-                  {pp(row.net_lift)}
-                </span>
-                <span className="text-xs text-zinc-600 font-mono">
-                  n={row.treatment_n}
-                </span>
-                {!row.is_significant && (
-                  <span className="text-[10px] text-zinc-600 uppercase tracking-wide ml-auto">
-                    not significant
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-          <Note>
-            Four of these classes cannot be distinguished from zero at this
-            sample size. They are shown as such rather than folded into the
-            headline.
-          </Note>
-        </Card>
-      </div>
     </Page>
-  );
-}
-
-function ArmBar({
-  label,
-  rate,
-  n,
-  recovered,
-  tone,
-}: {
-  label: string;
-  rate: number;
-  n: number;
-  recovered: number;
-  tone: "sky" | "zinc";
-}) {
-  return (
-    <div>
-      <div className="flex justify-between text-sm mb-1.5">
-        <span className="text-zinc-400">{label}</span>
-        <span className="font-mono text-zinc-200">
-          {pct(rate)}{" "}
-          <span className="text-zinc-600">
-            ({recovered}/{n})
-          </span>
-        </span>
-      </div>
-      <Bar value={rate} max={1} tone={tone} />
-    </div>
-  );
-}
-
-function Figure({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-1">
-        {label}
-      </div>
-      <div className="font-mono text-zinc-100">{value}</div>
-    </div>
   );
 }

@@ -50,7 +50,7 @@ export default function Audit() {
         <button
           onClick={tamper}
           disabled={busy}
-          className="px-4 py-2 rounded bg-rose-700 hover:bg-rose-600 disabled:bg-zinc-800 disabled:text-zinc-500 text-white text-sm font-medium transition"
+          className="px-4 py-2 rounded bg-[var(--critical)] hover:bg-[var(--critical)] disabled:bg-[var(--surface-raised)] disabled:text-[var(--ink-3)] text-white text-sm font-medium transition"
         >
           {busy ? "Rewriting…" : "Tamper with a record"}
         </button>
@@ -72,13 +72,13 @@ export default function Audit() {
 
       {status.valid ? (
         <Card>
-          <p className="text-sm text-zinc-300 leading-relaxed">
+          <p className="text-sm text-[var(--ink)] leading-relaxed">
             All {status.records.toLocaleString("en-IN")} events verify against a
             fresh recomputation from genesis. Nothing has been edited since it
             was written.
           </p>
           <Note>
-            Press <span className="text-rose-400">Tamper with a record</span> to
+            Press <span className="text-[var(--critical)]">Tamper with a record</span> to
             rewrite one recorded amount, the way somebody covering their tracks
             would. Nothing else is touched — the row keeps its stored hash,
             which is exactly why the next verification catches it.
@@ -87,10 +87,10 @@ export default function Audit() {
       ) : (
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <Pill className="text-rose-400 border-rose-500/30 bg-rose-500/10">
+            <Pill className="text-[var(--critical)] border-[var(--critical)]/30 bg-[var(--critical)]/10">
               tampering detected
             </Pill>
-            <span className="text-sm text-zinc-300">
+            <span className="text-sm text-[var(--ink)]">
               Event #{status.first_break} does not match its recorded hash.
             </span>
           </div>
@@ -98,25 +98,25 @@ export default function Audit() {
           {tampered && (
             <div className="grid sm:grid-cols-2 gap-4 mb-4">
               <div>
-                <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-1.5">
+                <div className="text-[11px] uppercase tracking-wider text-[var(--ink-3)] mb-1.5">
                   What was recorded
                 </div>
-                <pre className="text-xs font-mono bg-zinc-950 border border-zinc-800 rounded p-3 overflow-x-auto text-zinc-400">
+                <pre className="text-xs font-mono bg-[var(--surface-inset)] border border-[var(--line)] rounded p-3 overflow-x-auto text-[var(--ink-2)]">
                   {JSON.stringify(tampered.before, null, 2)}
                 </pre>
               </div>
               <div>
-                <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-1.5">
+                <div className="text-[11px] uppercase tracking-wider text-[var(--ink-3)] mb-1.5">
                   What it was changed to
                 </div>
-                <pre className="text-xs font-mono bg-zinc-950 border border-rose-900/50 rounded p-3 overflow-x-auto text-rose-300">
+                <pre className="text-xs font-mono bg-[var(--surface-inset)] border border-[var(--critical)]/40 rounded p-3 overflow-x-auto text-[var(--critical)]">
                   {JSON.stringify(tampered.after, null, 2)}
                 </pre>
               </div>
             </div>
           )}
 
-          <p className="text-sm font-mono text-zinc-500">
+          <p className="text-sm font-mono text-[var(--ink-3)]">
             broken_at: [{status.broken_at.join(", ")}]
           </p>
 
@@ -125,7 +125,7 @@ export default function Audit() {
             edited row is named on its own rather than dragging every later row
             into the report. Naming one row says exactly which decision was
             rewritten. Re-run the batch from{" "}
-            <span className="text-sky-400">Live Batch</span> to rebuild a clean
+            <span className="text-[var(--treatment)]">Live Batch</span> to rebuild a clean
             chain.
           </Note>
         </Card>

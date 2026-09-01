@@ -48,8 +48,8 @@ export default function CaseTimeline() {
           <Pill
             className={
               c.arm === "control"
-                ? "text-zinc-400 border-zinc-600/40 bg-zinc-700/20"
-                : "text-sky-400 border-sky-500/30 bg-sky-500/10"
+                ? "text-[var(--ink-2)] border-[var(--line-strong)] bg-[var(--surface-raised)]"
+                : "text-[var(--treatment)] border-[var(--treatment)]/30 bg-[var(--treatment)]/10"
             }
           >
             {c.arm}
@@ -58,7 +58,7 @@ export default function CaseTimeline() {
       }
     >
       {c.arm === "control" && (
-        <div className="mb-6 px-4 py-3 rounded border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-400">
+        <div className="mb-6 px-4 py-3 rounded border border-[var(--line-strong)] bg-[var(--surface-inset)] text-sm text-[var(--ink-2)]">
           This case is in the control arm. It was classified and measured, but
           never contacted and never billed. That is what makes the reported lift
           a measurement rather than a comparison of the system against itself.
@@ -76,31 +76,31 @@ export default function CaseTimeline() {
                 {payments.map((p) => (
                   <div
                     key={p.payment_id}
-                    className="border border-zinc-800 rounded p-3 bg-zinc-900/40"
+                    className="border border-[var(--line)] rounded p-3 bg-[var(--surface-inset)]"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-mono text-xs text-zinc-400">
+                      <span className="font-mono text-xs text-[var(--ink-2)]">
                         attempt {p.attempt_no} · {p.method} · {p.issuer}
                       </span>
-                      <span className="font-mono text-xs text-zinc-500">
+                      <span className="font-mono text-xs text-[var(--ink-3)]">
                         {istTime(p.created_at)}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-2">
-                      <Pill className="text-rose-400 border-rose-500/30 bg-rose-500/10">
+                      <Pill className="text-[var(--critical)] border-[var(--critical)]/30 bg-[var(--critical)]/10">
                         {p.error_reason}
                       </Pill>
                       <Pill>source: {p.error_source}</Pill>
                       <Pill>step: {p.error_step}</Pill>
                     </div>
-                    <p className="text-sm text-zinc-400">{p.error_description}</p>
+                    <p className="text-sm text-[var(--ink-2)]">{p.error_description}</p>
                   </div>
                 ))}
               </div>
               <Note>
-                <span className="text-zinc-400">error_source</span> says whose
+                <span className="text-[var(--ink-2)]">error_source</span> says whose
                 fault it was and{" "}
-                <span className="text-zinc-400">error_step</span> says where it
+                <span className="text-[var(--ink-2)]">error_step</span> says where it
                 broke. Together they decide recoverability — bank or gateway
                 means retry, customer means nudge, internal risk means do not
                 touch it.
@@ -110,10 +110,10 @@ export default function CaseTimeline() {
 
           <Card title="What happened, in order">
             {actions.length === 0 ? (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-[var(--ink-3)]">
                 No action was ever attempted on this case.
                 {c.exception_reason && (
-                  <span className="block mt-2 text-zinc-400">
+                  <span className="block mt-2 text-[var(--ink-2)]">
                     {c.exception_reason}
                   </span>
                 )}
@@ -170,8 +170,8 @@ export default function CaseTimeline() {
                     key={ch}
                     className={
                       customer[`consent_${ch}`]
-                        ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
-                        : "text-zinc-600 border-zinc-700 bg-zinc-800/40"
+                        ? "text-[var(--recovered)] border-[var(--recovered)]/30 bg-[var(--recovered)]/10"
+                        : "text-[var(--ink-4)] border-[var(--line-strong)] bg-[var(--surface-raised)]"
                     }
                   >
                     {ch}
@@ -216,8 +216,8 @@ function ActionBlock({ action }: { action: ActionRow }) {
     <div
       className={`border rounded p-4 ${
         blocked
-          ? "border-amber-900/50 bg-amber-950/10"
-          : "border-zinc-800 bg-zinc-900/40"
+          ? "border-[var(--warn)]/35 bg-[var(--warn)]/[0.05]"
+          : "border-[var(--line)] bg-[var(--surface-inset)]"
       }`}
     >
       <div className="flex items-center justify-between mb-3">
@@ -225,22 +225,22 @@ function ActionBlock({ action }: { action: ActionRow }) {
           <Pill
             className={
               blocked
-                ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
-                : "text-sky-400 border-sky-500/30 bg-sky-500/10"
+                ? "text-[var(--warn)] border-[var(--warn)]/30 bg-[var(--warn)]/10"
+                : "text-[var(--treatment)] border-[var(--treatment)]/30 bg-[var(--treatment)]/10"
             }
           >
             {action.status}
           </Pill>
-          <span className="text-sm text-zinc-300">
+          <span className="text-sm text-[var(--ink)]">
             Tier {action.tier} · {CHANNEL_LABELS[action.channel] ?? action.channel}
           </span>
           {!blocked && action.cost_paise > 0 && (
-            <span className="text-xs font-mono text-zinc-500">
+            <span className="text-xs font-mono text-[var(--ink-3)]">
               {rupees(action.cost_paise)}
             </span>
           )}
         </div>
-        <span className="text-xs font-mono text-zinc-600">
+        <span className="text-xs font-mono text-[var(--ink-4)]">
           {action.sent_at ? istTime(action.sent_at) : `tick ${action.tick}`}
         </span>
       </div>
@@ -253,8 +253,8 @@ function ActionBlock({ action }: { action: ActionRow }) {
             title={`${g.gate_id} ${g.name}: ${g.reason_code} — ${g.detail}`}
             className={`h-6 rounded-sm flex items-center justify-center text-[9px] font-mono cursor-help ${
               g.allowed
-                ? "bg-emerald-950/60 text-emerald-600 border border-emerald-900/40"
-                : "bg-rose-950/60 text-rose-400 border border-rose-800/60"
+                ? "bg-[var(--recovered)]/[0.12] text-[var(--recovered)] border border-[var(--recovered)]/30"
+                : "bg-[var(--critical)]/[0.12] text-[var(--critical)] border border-[var(--critical)]/50"
             }`}
           >
             {g.gate_id.replace("G", "")}
@@ -263,8 +263,8 @@ function ActionBlock({ action }: { action: ActionRow }) {
       </div>
 
       {refusals.map((g) => (
-        <p key={g.gate_id} className="text-sm text-amber-300/90 mb-1">
-          <span className="font-mono text-xs text-amber-500">
+        <p key={g.gate_id} className="text-sm text-[var(--warn)] mb-1">
+          <span className="font-mono text-xs text-[var(--warn)]">
             {g.gate_id} {g.name}
           </span>{" "}
           — {g.detail}
@@ -272,16 +272,16 @@ function ActionBlock({ action }: { action: ActionRow }) {
       ))}
 
       {action.message_body && (
-        <div className="mt-3 p-3 rounded bg-zinc-950 border border-zinc-800">
-          <p className="text-sm text-zinc-300 leading-relaxed">
+        <div className="mt-3 p-3 rounded bg-[var(--surface-inset)] border border-[var(--line)]">
+          <p className="text-sm text-[var(--ink)] leading-relaxed">
             {action.message_body}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Pill
               className={
                 action.llm_used
-                  ? "text-violet-400 border-violet-500/30 bg-violet-500/10"
-                  : "text-zinc-400 border-zinc-700 bg-zinc-800/40"
+                  ? "text-[#9085e9] border-[#9085e9]/30 bg-[#9085e9]/10"
+                  : "text-[var(--ink-2)] border-[var(--line-strong)] bg-[var(--surface-raised)]"
               }
             >
               {action.llm_used ? "LLM template" : "deterministic fallback"}
@@ -290,8 +290,8 @@ function ActionBlock({ action }: { action: ActionRow }) {
               <Pill
                 className={
                   wasNeverAsked(action.llm_rejected_reason)
-                    ? "text-zinc-500 border-zinc-700 bg-zinc-800/40"
-                    : "text-rose-400 border-rose-500/30 bg-rose-500/10"
+                    ? "text-[var(--ink-3)] border-[var(--line-strong)] bg-[var(--surface-raised)]"
+                    : "text-[var(--critical)] border-[var(--critical)]/30 bg-[var(--critical)]/10"
                 }
               >
                 {wasNeverAsked(action.llm_rejected_reason)
@@ -303,8 +303,8 @@ function ActionBlock({ action }: { action: ActionRow }) {
               <Pill
                 className={
                   action.payment_link_is_real
-                    ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
-                    : "text-zinc-500 border-zinc-700 bg-zinc-800/40"
+                    ? "text-[var(--recovered)] border-[var(--recovered)]/30 bg-[var(--recovered)]/10"
+                    : "text-[var(--ink-3)] border-[var(--line-strong)] bg-[var(--surface-raised)]"
                 }
               >
                 {action.payment_link_is_real
@@ -328,15 +328,15 @@ function ActionBlock({ action }: { action: ActionRow }) {
 
 function LedgerRow({ event }: { event: EventRow }) {
   return (
-    <div className="flex gap-3 py-1 border-b border-zinc-900 last:border-0">
-      <span className="text-zinc-700 w-10 shrink-0">#{event.event_id}</span>
-      <span className="text-zinc-600 w-24 shrink-0">{event.actor}</span>
-      <span className="text-zinc-400 w-32 shrink-0">{event.action}</span>
-      <span className="text-zinc-500 w-40 shrink-0 truncate">
+    <div className="flex gap-3 py-1 border-b border-[var(--line)] last:border-0">
+      <span className="text-[var(--ink-4)] w-10 shrink-0">#{event.event_id}</span>
+      <span className="text-[var(--ink-4)] w-24 shrink-0">{event.actor}</span>
+      <span className="text-[var(--ink-2)] w-32 shrink-0">{event.action}</span>
+      <span className="text-[var(--ink-3)] w-40 shrink-0 truncate">
         {event.reason_code}
       </span>
       <span
-        className="text-zinc-700 truncate"
+        className="text-[var(--ink-4)] truncate"
         title={`sha256 ${event.this_hash}`}
       >
         {event.this_hash.slice(0, 16)}…
@@ -348,8 +348,8 @@ function LedgerRow({ event }: { event: EventRow }) {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-zinc-500">{label}</dt>
-      <dd className="font-mono text-zinc-200 text-right">{value}</dd>
+      <dt className="text-[var(--ink-3)]">{label}</dt>
+      <dd className="font-mono text-[var(--ink)] text-right">{value}</dd>
     </div>
   );
 }

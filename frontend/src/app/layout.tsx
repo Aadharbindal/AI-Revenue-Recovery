@@ -23,7 +23,7 @@ export default function RootLayout({
       >
         <div className="flex h-screen overflow-hidden">
           <Nav />
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="flex-1 overflow-y-auto grid-plane">{children}</main>
         </div>
       </body>
     </html>

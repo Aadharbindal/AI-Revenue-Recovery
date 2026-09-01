@@ -6,14 +6,24 @@ import { useEffect, useState } from "react";
 
 import { fetchHealth, type HealthStatus } from "@/lib/api";
 
-const LINKS = [
-  { href: "/", label: "Command Center" },
-  { href: "/run", label: "Live Batch" },
-  { href: "/cases", label: "Cases" },
-  { href: "/guardrails", label: "Guardrails" },
-  { href: "/experiment", label: "Experiment" },
-  { href: "/exceptions", label: "Exceptions" },
-  { href: "/audit", label: "Audit Ledger" },
+const GROUPS = [
+  {
+    label: "Result",
+    links: [
+      { href: "/", label: "Command Center" },
+      { href: "/experiment", label: "Experiment" },
+      { href: "/exceptions", label: "Exceptions" },
+    ],
+  },
+  {
+    label: "Evidence",
+    links: [
+      { href: "/run", label: "Live Batch" },
+      { href: "/cases", label: "Cases" },
+      { href: "/guardrails", label: "Guardrails" },
+      { href: "/audit", label: "Audit Ledger" },
+    ],
+  },
 ];
 
 export default function Nav() {
@@ -26,36 +36,55 @@ export default function Nav() {
   }, []);
 
   return (
-    <aside className="w-60 shrink-0 bg-[#101012] border-r border-zinc-800 flex flex-col">
-      <div className="p-6">
-        <h1 className="text-lg font-semibold text-white tracking-tight">
-          Recover<span className="text-sky-500">OS</span>
-        </h1>
-        <p className="text-[10px] text-zinc-500 mt-1 uppercase tracking-[0.15em] font-mono">
-          Track 03 · Revenue Recovery
-        </p>
+    <aside className="w-[220px] shrink-0 bg-[var(--surface)] border-r border-[var(--line)] flex flex-col">
+      <div className="px-5 py-6">
+        <Link href="/" className="block">
+          <h1 className="text-[17px] font-semibold text-[var(--ink)] tracking-tight">
+            Recover<span style={{ color: "var(--treatment)" }}>OS</span>
+          </h1>
+          <p className="text-[9.5px] text-[var(--ink-3)] mt-1.5 uppercase tracking-[0.16em] font-mono leading-relaxed">
+            The LLM never
+            <br />
+            touches a rupee
+          </p>
+        </Link>
       </div>
 
-      <nav className="flex-1 px-3 space-y-1">
-        {LINKS.map((link) => {
-          const active =
-            link.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(link.href);
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`block px-3 py-2 rounded text-sm transition ${
-                active
-                  ? "bg-zinc-800 text-white font-medium"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
-              }`}
-            >
-              {link.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 px-3 space-y-5 overflow-y-auto">
+        {GROUPS.map((group) => (
+          <div key={group.label}>
+            <div className="px-3 mb-1.5 text-[9.5px] uppercase tracking-[0.16em] text-[var(--ink-4)] font-mono">
+              {group.label}
+            </div>
+            <div className="space-y-0.5">
+              {group.links.map((link) => {
+                const active =
+                  link.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`flex items-center gap-2.5 px-3 py-1.5 rounded text-[13px] transition-colors ${
+                      active
+                        ? "bg-[var(--surface-raised)] text-[var(--ink)] font-medium"
+                        : "text-[var(--ink-2)] hover:text-[var(--ink)] hover:bg-[var(--surface-raised)]/60"
+                    }`}
+                  >
+                    <span
+                      className="w-0.5 h-3.5 rounded-full shrink-0"
+                      style={{
+                        background: active ? "var(--treatment)" : "transparent",
+                      }}
+                    />
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/*
@@ -64,14 +93,14 @@ export default function Nav() {
         real services or from the deterministic fallbacks, without taking the
         README's word for it.
       */}
-      <div className="p-4 border-t border-zinc-800 text-[11px] font-mono space-y-1.5">
-        {down && <div className="text-rose-400">API unreachable</div>}
+      <div className="px-4 py-4 border-t border-[var(--line)] text-[10.5px] font-mono space-y-1.5">
+        {down && <div className="text-[var(--critical)]">API unreachable</div>}
         {health && (
           <>
-            <Integration on={health.integrations.razorpay_test_mode} label="Razorpay test mode" />
-            <Integration on={health.integrations.llm} label="LLM provider" />
+            <Integration on={health.integrations.razorpay_test_mode} label="Razorpay" />
+            <Integration on={health.integrations.llm} label="LLM" />
             <Integration on={health.integrations.voice_tts} label="Voice TTS" />
-            <div className="text-zinc-600 pt-1.5">
+            <div className="text-[var(--ink-4)] pt-1.5 leading-relaxed">
               {health.data.cases} cases · {health.data.events} events
             </div>
           </>
@@ -85,12 +114,11 @@ function Integration({ on, label }: { on: boolean; label: string }) {
   return (
     <div className="flex items-center gap-2">
       <span
-        className={`w-1.5 h-1.5 rounded-full ${
-          on ? "bg-emerald-500" : "bg-zinc-600"
-        }`}
+        className="w-1.5 h-1.5 rounded-full shrink-0"
+        style={{ background: on ? "var(--recovered)" : "var(--ink-4)" }}
       />
-      <span className={on ? "text-zinc-300" : "text-zinc-600"}>{label}</span>
-      <span className="ml-auto text-zinc-600">{on ? "live" : "fallback"}</span>
+      <span style={{ color: on ? "var(--ink-2)" : "var(--ink-4)" }}>{label}</span>
+      <span className="ml-auto text-[var(--ink-4)]">{on ? "live" : "fallback"}</span>
     </div>
   );
 }

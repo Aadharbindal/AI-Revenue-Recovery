@@ -57,17 +57,17 @@ export default function Experiment() {
         <Card title="Is the lift real?">
           <div className="mb-5">
             <div className="flex justify-between text-sm mb-1.5">
-              <span className="text-zinc-400">Treatment</span>
-              <span className="font-mono text-sky-400">{pct(e.treatment_rate)}</span>
+              <span className="text-[var(--ink-2)]">Treatment</span>
+              <span className="font-mono text-[var(--treatment)]">{pct(e.treatment_rate)}</span>
             </div>
-            <Bar value={e.treatment_rate} max={1} tone="sky" />
+            <Bar value={e.treatment_rate} max={1} tone="treatment" />
           </div>
           <div className="mb-6">
             <div className="flex justify-between text-sm mb-1.5">
-              <span className="text-zinc-400">Control</span>
-              <span className="font-mono text-zinc-400">{pct(e.control_rate)}</span>
+              <span className="text-[var(--ink-2)]">Control</span>
+              <span className="font-mono text-[var(--ink-2)]">{pct(e.control_rate)}</span>
             </div>
-            <Bar value={e.control_rate} max={1} tone="zinc" />
+            <Bar value={e.control_rate} max={1} tone="muted" />
           </div>
 
           <ConfidenceInterval lower={e.ci_lower} point={e.net_lift} upper={e.ci_upper} />
@@ -75,8 +75,8 @@ export default function Experiment() {
           <div
             className={`mt-5 p-4 rounded border text-sm leading-relaxed ${
               e.is_significant
-                ? "border-emerald-900/50 bg-emerald-950/20 text-emerald-200"
-                : "border-amber-900/50 bg-amber-950/20 text-amber-200"
+                ? "border-[var(--recovered)]/40 bg-[var(--recovered)]/[0.07] text-[var(--recovered)]"
+                : "border-[var(--warn)]/35 bg-[var(--warn)]/[0.07] text-[var(--warn)]"
             }`}
           >
             {e.is_significant ? (
@@ -139,7 +139,7 @@ export default function Experiment() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+              <tr className="text-left text-[11px] uppercase tracking-wider text-[var(--ink-3)] border-b border-[var(--line)]">
                 <th className="pb-2 pr-4">Class</th>
                 <th className="pb-2 pr-4 text-right">Treatment</th>
                 <th className="pb-2 pr-4 text-right">Control</th>
@@ -153,42 +153,42 @@ export default function Experiment() {
               {data.per_class.map((row) => (
                 <tr
                   key={row.recovery_class}
-                  className="border-b border-zinc-900 last:border-0"
+                  className="border-b border-[var(--line)] last:border-0"
                 >
                   <td className="py-2.5 pr-4">
                     <Pill className={CLASS_COLORS[row.recovery_class]}>
                       {row.recovery_class}
                     </Pill>
                   </td>
-                  <td className="py-2.5 pr-4 text-right font-mono text-zinc-300">
+                  <td className="py-2.5 pr-4 text-right font-mono text-[var(--ink)]">
                     {pct(row.treatment_rate)}
-                    <span className="text-zinc-600 text-xs ml-1">
+                    <span className="text-[var(--ink-4)] text-xs ml-1">
                       n={row.treatment_n}
                     </span>
                   </td>
-                  <td className="py-2.5 pr-4 text-right font-mono text-zinc-400">
+                  <td className="py-2.5 pr-4 text-right font-mono text-[var(--ink-2)]">
                     {pct(row.control_rate)}
-                    <span className="text-zinc-600 text-xs ml-1">
+                    <span className="text-[var(--ink-4)] text-xs ml-1">
                       n={row.control_n}
                     </span>
                   </td>
                   <td
                     className={`py-2.5 pr-4 text-right font-mono ${
-                      row.is_significant ? "text-emerald-400" : "text-zinc-500"
+                      row.is_significant ? "text-[var(--recovered)]" : "text-[var(--ink-3)]"
                     }`}
                   >
                     {pp(row.net_lift)}
                   </td>
-                  <td className="py-2.5 pr-4 font-mono text-xs text-zinc-600">
+                  <td className="py-2.5 pr-4 font-mono text-xs text-[var(--ink-4)]">
                     {(row.ci_lower * 100).toFixed(1)} to{" "}
                     {(row.ci_upper * 100).toFixed(1)}
                   </td>
-                  <td className="py-2.5 pr-4 text-right font-mono text-zinc-400">
+                  <td className="py-2.5 pr-4 text-right font-mono text-[var(--ink-2)]">
                     {rupees(row.spend_paise)}
                   </td>
                   <td className="py-2.5">
                     {row.is_significant ? (
-                      <Pill className="text-emerald-400 border-emerald-500/30 bg-emerald-500/10">
+                      <Pill className="text-[var(--recovered)] border-[var(--recovered)]/30 bg-[var(--recovered)]/10">
                         significant
                       </Pill>
                     ) : (
@@ -228,22 +228,22 @@ function ConfidenceInterval({
 
   return (
     <div>
-      <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-3">
+      <div className="text-[11px] uppercase tracking-wider text-[var(--ink-3)] mb-3">
         95% confidence interval on the lift
       </div>
       <div className="relative h-10">
-        <div className="absolute inset-x-0 top-4 h-px bg-zinc-800" />
+        <div className="absolute inset-x-0 top-4 h-px bg-[var(--surface-raised)]" />
         <div
-          className="absolute top-0 bottom-0 w-px bg-zinc-600"
+          className="absolute top-0 bottom-0 w-px bg-[var(--line-strong)]"
           style={{ left: `${scale(0)}%` }}
         >
-          <span className="absolute -bottom-1 -translate-x-1/2 text-[10px] font-mono text-zinc-600">
+          <span className="absolute -bottom-1 -translate-x-1/2 text-[10px] font-mono text-[var(--ink-4)]">
             0
           </span>
         </div>
         <div
           className={`absolute top-3 h-2 rounded-full ${
-            lower > 0 ? "bg-emerald-600/70" : "bg-amber-600/70"
+            lower > 0 ? "bg-[var(--recovered)]" : "bg-[var(--warn)]"
           }`}
           style={{
             left: `${scale(lower)}%`,
@@ -255,9 +255,9 @@ function ConfidenceInterval({
           style={{ left: `${scale(point)}%` }}
         />
       </div>
-      <div className="flex justify-between text-xs font-mono text-zinc-500 mt-1">
+      <div className="flex justify-between text-xs font-mono text-[var(--ink-3)] mt-1">
         <span>{(lower * 100).toFixed(1)} pp</span>
-        <span className="text-zinc-200">{pp(point)}</span>
+        <span className="text-[var(--ink)]">{pp(point)}</span>
         <span>{(upper * 100).toFixed(1)} pp</span>
       </div>
     </div>
@@ -275,10 +275,10 @@ function Row({
 }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-zinc-500">{label}</dt>
+      <dt className="text-[var(--ink-3)]">{label}</dt>
       <dd
         className={`font-mono text-right ${
-          strong ? "text-emerald-400 font-semibold" : "text-zinc-200"
+          strong ? "text-[var(--recovered)] font-semibold" : "text-[var(--ink)]"
         }`}
       >
         {value}

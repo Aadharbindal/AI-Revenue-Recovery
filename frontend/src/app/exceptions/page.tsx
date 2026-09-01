@@ -47,17 +47,17 @@ export default function Exceptions() {
       <Card title="Why each case is still open">
         <div className="space-y-5">
           {rows.map((row) => (
-            <div key={row.reason} className="border-b border-zinc-900 pb-5 last:border-0">
+            <div key={row.reason} className="border-b border-[var(--line)] pb-5 last:border-0">
               <div className="flex items-start justify-between gap-6 mb-2">
-                <p className="text-sm text-zinc-200 leading-relaxed">{row.reason}</p>
+                <p className="text-sm text-[var(--ink)] leading-relaxed">{row.reason}</p>
                 <div className="text-right shrink-0">
-                  <div className="font-mono text-sm text-zinc-200">
+                  <div className="font-mono text-sm text-[var(--ink)]">
                     {rupees(row.amount_paise, 0)}
                   </div>
-                  <div className="text-xs text-zinc-600">{row.count} cases</div>
+                  <div className="text-xs text-[var(--ink-4)]">{row.count} cases</div>
                 </div>
               </div>
-              <Bar value={row.amount_paise} max={maxAmount} tone="zinc" />
+              <Bar value={row.amount_paise} max={maxAmount} tone="muted" />
               <div className="flex flex-wrap gap-1.5 mt-2.5">
                 {Object.entries(row.by_class)
                   .sort((a, b) => b[1] - a[1])

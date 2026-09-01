@@ -66,7 +66,7 @@ export default function Cases() {
       </div>
 
       <Card>
-        <div className="text-xs text-zinc-500 mb-3 font-mono">
+        <div className="text-xs text-[var(--ink-3)] mb-3 font-mono">
           {rows.length} of {total} cases
         </div>
         {rows.length === 0 ? (
@@ -75,7 +75,7 @@ export default function Cases() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+                <tr className="text-left text-[11px] uppercase tracking-wider text-[var(--ink-3)] border-b border-[var(--line)]">
                   <th className="pb-2 pr-4">Case</th>
                   <th className="pb-2 pr-4">Class</th>
                   <th className="pb-2 pr-4">State</th>
@@ -90,7 +90,7 @@ export default function Cases() {
                 {rows.map((c) => (
                   <tr
                     key={c.case_id}
-                    className="border-b border-zinc-900 hover:bg-zinc-900/40"
+                    className="border-b border-[var(--line)] hover:bg-[var(--surface-inset)]"
                   >
                     <td className="py-2 pr-4">
                       <CaseLink id={c.case_id} />
@@ -103,19 +103,19 @@ export default function Cases() {
                     <td className="py-2 pr-4">
                       <Pill className={STATE_COLORS[c.state]}>{c.state}</Pill>
                     </td>
-                    <td className="py-2 pr-4 text-zinc-500 font-mono text-xs">
+                    <td className="py-2 pr-4 text-[var(--ink-3)] font-mono text-xs">
                       {c.arm}
                     </td>
-                    <td className="py-2 pr-4 text-right font-mono text-zinc-300">
+                    <td className="py-2 pr-4 text-right font-mono text-[var(--ink)]">
                       {rupees(c.amount_at_risk_paise, 0)}
                     </td>
-                    <td className="py-2 pr-4 text-right font-mono text-zinc-400">
+                    <td className="py-2 pr-4 text-right font-mono text-[var(--ink-2)]">
                       {c.touches_used}
                     </td>
-                    <td className="py-2 pr-4 text-right font-mono text-zinc-500">
+                    <td className="py-2 pr-4 text-right font-mono text-[var(--ink-3)]">
                       {rupees(c.intervention_cost_paise)}
                     </td>
-                    <td className="py-2 text-zinc-500 text-xs max-w-xs truncate">
+                    <td className="py-2 text-[var(--ink-3)] text-xs max-w-xs truncate">
                       {c.state === "RECOVERED" ? "—" : c.exception_reason}
                     </td>
                   </tr>
@@ -142,13 +142,13 @@ function Select({
 }) {
   return (
     <label className="text-xs">
-      <span className="block text-[11px] uppercase tracking-wider text-zinc-500 mb-1">
+      <span className="block text-[11px] uppercase tracking-wider text-[var(--ink-3)] mb-1">
         {label}
       </span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-[#141417] border border-zinc-800 rounded px-3 py-1.5 text-sm text-zinc-200 font-mono focus:outline-none focus:border-sky-700"
+        className="bg-[var(--surface)] border border-[var(--line)] rounded px-3 py-1.5 text-sm text-[var(--ink)] font-mono focus:outline-none focus:border-[var(--treatment)]"
       >
         {options.map((o) => (
           <option key={o} value={o}>

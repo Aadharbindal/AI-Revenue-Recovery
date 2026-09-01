@@ -14,12 +14,20 @@ would have" — only what exists.
 
 ## 0:00–0:25 · The problem, with a number
 
-**On screen:** `/` Command Center. Let the four tiles sit for a beat.
+**On screen:** `/` Command Center. Let the hero figure sit for a beat, then
+scroll slowly to the divergence chart and stop there.
 
 > "Seven hundred and twenty-five failed payments and overdue invoices. One crore
-> six lakh rupees at risk. Every payment platform shows you this dashboard.
-> Almost none of them close the loop. RecoverOS does — detect, diagnose,
-> intervene, and then prove how much money actually came back."
+> six lakh rupees at risk.
+>
+> This is the chart the whole project is about. The blue line is the cases the
+> agent worked. The grey one is a fifth of the batch it was never allowed to
+> touch. The wedge between them is the only thing we're allowed to take credit
+> for — and the dark vertical stripes are the seven nights, where the
+> quiet-hours gate suppresses everything and the blue line goes flat."
+
+Do not rush this. Hovering the chart at day 3 to show the tooltip is worth two
+seconds.
 
 ---
 

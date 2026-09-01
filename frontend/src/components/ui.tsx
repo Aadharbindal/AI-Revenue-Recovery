@@ -3,33 +3,40 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 
-/** Shared primitives. Dark, dense, monospace numbers — this is an ops console. */
+/** Shared primitives. Dense, instrument-panel dark, monospace numerals. */
 
 export function Page({
   title,
+  kicker,
   subtitle,
   children,
   actions,
 }: {
   title: string;
+  kicker?: string;
   subtitle?: string;
   children: ReactNode;
   actions?: ReactNode;
 }) {
   return (
-    <div className="p-8 lg:p-10 max-w-7xl">
-      <header className="mb-8 flex items-start justify-between gap-6">
+    <div className="px-8 py-8 lg:px-10 max-w-[1400px]">
+      <header className="mb-7 flex items-start justify-between gap-8">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">
+          {kicker && (
+            <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] mb-2 font-mono">
+              {kicker}
+            </div>
+          )}
+          <h1 className="text-[26px] leading-tight font-semibold tracking-tight text-[var(--ink)]">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-sm text-zinc-400 mt-1 max-w-2xl leading-relaxed">
+            <p className="text-sm text-[var(--ink-2)] mt-2 max-w-3xl leading-relaxed">
               {subtitle}
             </p>
           )}
         </div>
-        {actions}
+        {actions && <div className="shrink-0">{actions}</div>}
       </header>
       {children}
     </div>
@@ -41,22 +48,29 @@ export function Card({
   hint,
   children,
   className = "",
+  aside,
 }: {
   title?: string;
   hint?: string;
   children: ReactNode;
   className?: string;
+  aside?: ReactNode;
 }) {
   return (
     <section
-      className={`bg-[#141417] border border-zinc-800 rounded-lg ${className}`}
+      className={`bg-[var(--surface)] border border-[var(--line)] rounded-lg ${className}`}
     >
       {title && (
-        <div className="px-5 py-4 border-b border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">
-            {title}
-          </h2>
-          {hint && <p className="text-xs text-zinc-500 mt-1">{hint}</p>}
+        <div className="px-5 py-3.5 border-b border-[var(--line)] flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-[11px] font-semibold text-[var(--ink-2)] uppercase tracking-[0.12em]">
+              {title}
+            </h2>
+            {hint && (
+              <p className="text-xs text-[var(--ink-3)] mt-1 leading-relaxed">{hint}</p>
+            )}
+          </div>
+          {aside && <div className="shrink-0">{aside}</div>}
         </div>
       )}
       <div className="p-5">{children}</div>
@@ -64,35 +78,43 @@ export function Card({
   );
 }
 
+const TONES = {
+  default: "text-[var(--ink)]",
+  good: "text-[var(--recovered)]",
+  bad: "text-[var(--critical)]",
+  warn: "text-[var(--warn)]",
+  accent: "text-[var(--treatment)]",
+  muted: "text-[var(--ink-2)]",
+} as const;
+
 export function Stat({
   label,
   value,
   sub,
   tone = "default",
+  size = "md",
 }: {
   label: string;
   value: string;
-  sub?: string;
-  tone?: "default" | "good" | "bad" | "warn" | "accent";
+  sub?: ReactNode;
+  tone?: keyof typeof TONES;
+  size?: "md" | "lg";
 }) {
-  const tones = {
-    default: "text-white",
-    good: "text-emerald-400",
-    bad: "text-rose-400",
-    warn: "text-amber-400",
-    accent: "text-sky-400",
-  };
   return (
-    <div className="bg-[#141417] border border-zinc-800 rounded-lg p-5">
-      <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-2">
+    <div className="bg-[var(--surface)] border border-[var(--line)] rounded-lg p-5">
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-3)] mb-2">
         {label}
       </div>
       <div
-        className={`text-2xl font-mono font-semibold tracking-tight ${tones[tone]}`}
+        className={`font-mono font-semibold tracking-tight tnum ${TONES[tone]} ${
+          size === "lg" ? "text-[34px] leading-none" : "text-[26px] leading-none"
+        }`}
       >
         {value}
       </div>
-      {sub && <div className="text-xs text-zinc-500 mt-2 leading-relaxed">{sub}</div>}
+      {sub && (
+        <div className="text-xs text-[var(--ink-3)] mt-2.5 leading-relaxed">{sub}</div>
+      )}
     </div>
   );
 }
@@ -106,8 +128,9 @@ export function Pill({
 }) {
   return (
     <span
-      className={`inline-block text-[11px] font-mono px-2 py-0.5 rounded border ${
-        className || "text-zinc-400 border-zinc-700 bg-zinc-800/40"
+      className={`inline-block text-[10.5px] font-mono px-1.5 py-0.5 rounded border leading-relaxed ${
+        className ||
+        "text-[var(--ink-2)] border-[var(--line-strong)] bg-[var(--surface-raised)]"
       }`}
     >
       {children}
@@ -115,28 +138,29 @@ export function Pill({
   );
 }
 
+const BAR_TONES = {
+  treatment: "var(--treatment)",
+  guard: "var(--guard)",
+  recovered: "var(--recovered)",
+  control: "var(--control)",
+  muted: "var(--line-strong)",
+} as const;
+
 export function Bar({
   value,
   max,
-  tone = "sky",
+  tone = "treatment",
 }: {
   value: number;
   max: number;
-  tone?: "sky" | "emerald" | "zinc" | "rose" | "amber";
+  tone?: keyof typeof BAR_TONES;
 }) {
-  const tones = {
-    sky: "bg-sky-500",
-    emerald: "bg-emerald-500",
-    zinc: "bg-zinc-500",
-    rose: "bg-rose-500",
-    amber: "bg-amber-500",
-  };
   const width = max > 0 ? Math.max((value / max) * 100, value > 0 ? 1.5 : 0) : 0;
   return (
-    <div className="w-full bg-zinc-900 rounded-sm h-2 overflow-hidden">
+    <div className="w-full bg-[var(--surface-inset)] rounded-sm h-1.5 overflow-hidden">
       <div
-        className={`h-2 rounded-sm ${tones[tone]} transition-all duration-500`}
-        style={{ width: `${width}%` }}
+        className="h-1.5 rounded-sm transition-all duration-500"
+        style={{ width: `${width}%`, background: BAR_TONES[tone] }}
       />
     </div>
   );
@@ -144,20 +168,34 @@ export function Bar({
 
 export function Loading({ what }: { what: string }) {
   return (
-    <div className="p-10 text-sm text-zinc-500 font-mono">Loading {what}…</div>
+    <div className="px-10 py-16 text-sm text-[var(--ink-3)] font-mono flex items-center gap-3">
+      <span className="relative flex w-2 h-2">
+        <span
+          className="absolute inline-flex w-2 h-2 rounded-full pulse-ring"
+          style={{ background: "var(--treatment)" }}
+        />
+        <span
+          className="relative inline-flex w-2 h-2 rounded-full"
+          style={{ background: "var(--treatment)" }}
+        />
+      </span>
+      Loading {what}…
+    </div>
   );
 }
 
 export function Failed({ error }: { error: string }) {
   return (
-    <div className="p-10">
-      <div className="border border-rose-900/60 bg-rose-950/30 rounded-lg p-5 max-w-2xl">
-        <h2 className="text-rose-300 font-semibold mb-2">Cannot reach the API</h2>
-        <p className="text-sm text-zinc-400 font-mono mb-3">{error}</p>
-        <p className="text-sm text-zinc-400 leading-relaxed">
-          Start the backend with{" "}
-          <code className="text-zinc-200">make api</code>, or on a free hosting
-          tier give it a few seconds to wake from cold start and reload.
+    <div className="px-10 py-10">
+      <div className="border border-[var(--critical)]/40 bg-[var(--critical)]/[0.07] rounded-lg p-5 max-w-2xl">
+        <h2 className="text-[var(--critical)] font-semibold mb-2 text-sm">
+          Cannot reach the API
+        </h2>
+        <p className="text-xs text-[var(--ink-3)] font-mono mb-3">{error}</p>
+        <p className="text-sm text-[var(--ink-2)] leading-relaxed">
+          Start the backend with <code className="text-[var(--ink)]">make api</code>,
+          or on a free hosting tier give it a few seconds to wake from cold start
+          and reload.
         </p>
       </div>
     </div>
@@ -168,7 +206,7 @@ export function CaseLink({ id }: { id: string }) {
   return (
     <Link
       href={`/case/${id}`}
-      className="font-mono text-sky-400 hover:text-sky-300 hover:underline"
+      className="font-mono text-[var(--treatment)] hover:underline underline-offset-2"
     >
       {id}
     </Link>
@@ -181,7 +219,7 @@ export function CaseLink({ id }: { id: string }) {
  */
 export function Note({ children }: { children: ReactNode }) {
   return (
-    <p className="text-xs text-zinc-500 leading-relaxed border-l-2 border-zinc-800 pl-3 mt-4">
+    <p className="text-xs text-[var(--ink-3)] leading-relaxed border-l-2 border-[var(--line)] pl-3 mt-4">
       {children}
     </p>
   );

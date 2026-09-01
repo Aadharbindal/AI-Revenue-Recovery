@@ -203,6 +203,67 @@ export interface DeliveryReport {
   real_payment_links: number;
 }
 
+export interface TimelineRow {
+  tick: number;
+  at: string;
+  ist_hour: number;
+  day: number;
+  quiet: boolean;
+  sent: number;
+  blocked: number;
+  spend_paise: number;
+  cum_spend_paise: number;
+  recovered_treatment: number;
+  recovered_control: number;
+  cum_treatment: number;
+  cum_control: number;
+  cum_treatment_paise: number;
+  cum_control_paise: number;
+  by_gate: Record<string, number>;
+  by_tier: Record<string, number>;
+}
+
+export interface Outage {
+  issuer: string;
+  start_tick: number;
+  end_tick: number;
+  peak_failures: number;
+}
+
+export interface Timeline {
+  ticks: number;
+  tick_hours: number;
+  batch_start: string;
+  arm_totals: { treatment: number; control: number };
+  outages: Outage[];
+  rows: TimelineRow[];
+}
+
+export interface FlowClass {
+  recovery_class: string;
+  at_risk_paise: number;
+  recovered_paise: number;
+  spend_paise: number;
+  cases: number;
+  recovered_cases: number;
+}
+
+export interface Flow {
+  at_risk_paise: number;
+  recovered_paise: number;
+  spend_paise: number;
+  by_class: FlowClass[];
+  by_arm: Record<
+    string,
+    {
+      at_risk_paise: number;
+      recovered_paise: number;
+      cases: number;
+      recovered_cases: number;
+    }
+  >;
+}
+
 export interface HealthStatus {
   status: string;
   simulation: {
@@ -229,6 +290,8 @@ export const fetchIssuerHealth = () =>
   get<{ at: string; issuers: IssuerHealth[] }>("/metrics/issuer-health");
 export const fetchExceptions = () =>
   get<{ exceptions: ExceptionRow[] }>("/metrics/exceptions");
+export const fetchTimeline = () => get<Timeline>("/metrics/timeline");
+export const fetchFlow = () => get<Flow>("/metrics/flow");
 export const fetchExperiment = () =>
   get<{ overall: ExperimentResult; per_class: ClassRow[] }>("/metrics/experiment");
 export const fetchFunnel = (arm = "treatment") =>

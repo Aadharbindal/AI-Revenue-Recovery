@@ -64,23 +64,23 @@ export default function Guardrails() {
       <Card title="Every gate, including the quiet ones">
         <div className="space-y-4">
           {g.gates.map((gate) => (
-            <div key={gate.gate} className="border-b border-zinc-900 pb-4 last:border-0">
+            <div key={gate.gate} className="border-b border-[var(--line)] pb-4 last:border-0">
               <div className="flex items-baseline justify-between gap-4 mb-1.5">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-mono text-sm text-zinc-300">{gate.gate}</span>
-                  <span className="text-sm text-zinc-200">{gate.name}</span>
+                  <span className="font-mono text-sm text-[var(--ink)]">{gate.gate}</span>
+                  <span className="text-sm text-[var(--ink)]">{gate.name}</span>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="font-mono text-sm text-zinc-200">
+                  <span className="font-mono text-sm text-[var(--ink)]">
                     {gate.blocks}
                   </span>
-                  <span className="text-xs text-zinc-600 ml-2">
+                  <span className="text-xs text-[var(--ink-4)] ml-2">
                     {gate.cases_affected} cases
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-zinc-500 mb-2">{GATE_PURPOSE[gate.gate]}</p>
-              <Bar value={gate.blocks} max={maxBlocks} tone={gate.blocks ? "amber" : "zinc"} />
+              <p className="text-xs text-[var(--ink-3)] mb-2">{GATE_PURPOSE[gate.gate]}</p>
+              <Bar value={gate.blocks} max={maxBlocks} tone={gate.blocks ? "guard" : "muted"} />
               {Object.keys(gate.reasons).length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {Object.entries(gate.reasons)
@@ -114,18 +114,18 @@ export default function Guardrails() {
           <div className="space-y-3">
             {d.by_tier.map((tier) => (
               <div key={tier.tier} className="flex items-center gap-4 text-sm">
-                <span className="font-mono text-zinc-500 w-14 shrink-0">
+                <span className="font-mono text-[var(--ink-3)] w-14 shrink-0">
                   Tier {tier.tier}
                 </span>
-                <span className="text-zinc-400 flex-1">
+                <span className="text-[var(--ink-2)] flex-1">
                   {Object.entries(tier.channels)
                     .map(([ch, n]) => `${CHANNEL_LABELS[ch] ?? ch} ×${n}`)
                     .join(", ")}
                 </span>
-                <span className="font-mono text-zinc-300 w-16 text-right">
+                <span className="font-mono text-[var(--ink)] w-16 text-right">
                   {tier.sent}
                 </span>
-                <span className="font-mono text-zinc-500 w-20 text-right">
+                <span className="font-mono text-[var(--ink-3)] w-20 text-right">
                   {rupees(tier.spend_paise)}
                 </span>
               </div>

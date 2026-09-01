@@ -1,46 +1,108 @@
 @import "tailwindcss";
 
 /*
- * Committed to a dark console look rather than following the OS theme. The
- * dashboard is one half of a side-by-side demo with a terminal, and a surface
+ * Design tokens.
+ *
+ * Committed to dark: this sits beside a terminal in a live demo, and a surface
  * that flips to white on someone else's laptop mid-presentation is not worth
  * the flexibility.
+ *
+ * The series colours are not chosen by eye. They were run through a
+ * colour-vision validator against this exact surface (#111214) and clear the
+ * lightness band, the chroma floor, adjacent-pair CVD separation, the
+ * normal-vision floor, and 3:1 contrast. Changing one means re-running it.
  */
 :root {
-  --background: #0b0b0d;
-  --foreground: #e4e4e7;
-  --panel: #141417;
-  --border: #27272a;
-}
+  color-scheme: dark;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  /* Surfaces — four planes, so depth comes from elevation rather than borders */
+  --plane: #08090a;
+  --surface: #111214;
+  --surface-raised: #16181b;
+  --surface-inset: #0c0d0f;
+
+  --line: #23262b;
+  --line-strong: #32363d;
+
+  /* Ink */
+  --ink: #f4f5f7;
+  --ink-2: #a8adb7;
+  --ink-3: #6b7280;
+  --ink-4: #464b54;
+
+  /* Series — validated categorical slots */
+  --treatment: #3987e5;  /* the arm we worked */
+  --guard: #d95926;      /* refusals */
+  --recovered: #199e70;  /* money back */
+
+  /* The control arm is deliberately achromatic. It is the do-nothing
+     baseline, and giving it a hue would make it read as a third thing being
+     done rather than as the absence of action. */
+  --control: #8b909a;
+
+  /* Status — reserved, never reused as a series colour */
+  --good: #0ca30c;
+  --warn: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+
+  /* Chart chrome */
+  --grid: #1c1f23;
+  --axis: #2b2f35;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--plane);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Numbers line up in columns when they share a width. */
-.font-mono {
+/* Numbers must line up in columns. */
+.font-mono,
+.tnum {
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+/* A quiet grid on the page plane — reads as instrumentation, not decoration. */
+.grid-plane {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: -1px -1px;
 }
-::-webkit-scrollbar-track {
-  background: var(--background);
+
+.hairline {
+  border: 1px solid var(--line);
 }
-::-webkit-scrollbar-thumb {
-  background: #2f2f35;
-  border-radius: 5px;
+
+/* Used on the hero figure and live counters. */
+@keyframes tick-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: none; }
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+.tick-in {
+  animation: tick-in 240ms ease-out both;
 }
+
+@keyframes pulse-ring {
+  0%   { opacity: 0.9; transform: scale(1); }
+  70%  { opacity: 0;   transform: scale(2.6); }
+  100% { opacity: 0;   transform: scale(2.6); }
+}
+.pulse-ring {
+  animation: pulse-ring 1.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tick-in,
+  .pulse-ring {
+    animation: none;
+  }
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #454a53; }

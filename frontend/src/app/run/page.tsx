@@ -136,31 +136,31 @@ export default function LiveBatch() {
         <button
           onClick={start}
           disabled={running}
-          className="px-4 py-2 rounded bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white text-sm font-medium transition"
+          className="px-4 py-2 rounded bg-[var(--treatment)] hover:bg-[var(--treatment)] disabled:bg-[var(--surface-raised)] disabled:text-[var(--ink-3)] text-white text-sm font-medium transition"
         >
           {running ? "Running…" : "Run batch"}
         </button>
       }
     >
       {error && (
-        <div className="mb-6 border border-rose-900/60 bg-rose-950/30 rounded-lg p-4 text-sm text-rose-300 font-mono">
+        <div className="mb-6 border border-[var(--critical)]/40 bg-[var(--critical)]/[0.08] rounded-lg p-4 text-sm text-[var(--critical)] font-mono">
           {error}
         </div>
       )}
 
       <div className="mb-6">
-        <div className="flex justify-between text-xs font-mono text-zinc-500 mb-2">
+        <div className="flex justify-between text-xs font-mono text-[var(--ink-3)] mb-2">
           <span>
             {counters.tick >= 0
               ? `tick ${counters.tick + 1}/84 · ${istTime(counters.at)} IST`
               : "idle"}
             {quiet && counters.tick >= 0 && (
-              <span className="text-amber-500 ml-2">quiet hours</span>
+              <span className="text-[var(--warn)] ml-2">quiet hours</span>
             )}
           </span>
           <span>{total > 0 && `${total} cases`}</span>
         </div>
-        <Bar value={progress} max={100} tone={running ? "sky" : "emerald"} />
+        <Bar value={progress} max={100} tone={running ? "treatment" : "recovered"} />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -179,7 +179,7 @@ export default function LiveBatch() {
       </div>
 
       {degraded.length > 0 && (
-        <div className="mb-6 px-4 py-3 rounded border border-amber-900/50 bg-amber-950/20 text-sm text-amber-300">
+        <div className="mb-6 px-4 py-3 rounded border border-[var(--warn)]/35 bg-[var(--warn)]/[0.07] text-sm text-[var(--warn)]">
           Detector flagged {degraded.join(", ")} as degraded before the first
           tick. Silent retries against it are being held, not spent.
         </div>
@@ -189,28 +189,28 @@ export default function LiveBatch() {
         <Card title="Decision feed" className="lg:col-span-2">
           <div className="h-[420px] overflow-y-auto font-mono text-xs space-y-1">
             {feed.length === 0 && (
-              <p className="text-zinc-600">
+              <p className="text-[var(--ink-4)]">
                 Press “Run batch” to watch decisions stream in.
               </p>
             )}
             {feed.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-zinc-900/60"
+                className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-[var(--surface-raised)]"
               >
                 <span
                   className={`w-16 shrink-0 uppercase tracking-wide ${
                     item.kind === "blocked"
-                      ? "text-amber-500"
+                      ? "text-[var(--warn)]"
                       : item.kind === "recovered"
-                        ? "text-emerald-500"
-                        : "text-sky-500"
+                        ? "text-[var(--recovered)]"
+                        : "text-[var(--treatment)]"
                   }`}
                 >
                   {item.kind}
                 </span>
-                <span className="text-zinc-400 w-24 shrink-0">{item.text}</span>
-                <span className="text-zinc-500">{item.detail}</span>
+                <span className="text-[var(--ink-2)] w-24 shrink-0">{item.text}</span>
+                <span className="text-[var(--ink-3)]">{item.detail}</span>
               </div>
             ))}
           </div>
@@ -218,7 +218,7 @@ export default function LiveBatch() {
 
         <Card title="Gates firing" hint="Distinct cases refused, by gate">
           {Object.keys(gates).length === 0 ? (
-            <p className="text-sm text-zinc-600">Nothing refused yet.</p>
+            <p className="text-sm text-[var(--ink-4)]">Nothing refused yet.</p>
           ) : (
             <div className="space-y-2.5">
               {Object.entries(gates)
@@ -226,13 +226,13 @@ export default function LiveBatch() {
                 .map(([gate, n]) => (
                   <div key={gate}>
                     <div className="flex justify-between text-xs font-mono mb-1">
-                      <span className="text-zinc-400">{gate}</span>
-                      <span className="text-zinc-300">{n}</span>
+                      <span className="text-[var(--ink-2)]">{gate}</span>
+                      <span className="text-[var(--ink)]">{n}</span>
                     </div>
                     <Bar
                       value={n}
                       max={Math.max(...Object.values(gates))}
-                      tone="amber"
+                      tone="guard"
                     />
                   </div>
                 ))}
@@ -290,10 +290,10 @@ export default function LiveBatch() {
 function SummaryFigure({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-1">
+      <div className="text-[11px] uppercase tracking-wider text-[var(--ink-3)] mb-1">
         {label}
       </div>
-      <div className="font-mono text-zinc-100">{value}</div>
+      <div className="font-mono text-[var(--ink)]">{value}</div>
     </div>
   );
 }
