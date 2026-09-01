@@ -102,7 +102,18 @@ body {
   }
 }
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: #454a53; }
+/*
+ * Scrollbars are hidden. Scrolling still works — wheel, trackpad, keyboard and
+ * touch are all untouched; only the visible track and thumb are gone, so the
+ * panels read as one uninterrupted surface on screen and on camera.
+ */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+* {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* legacy Edge */
+}
