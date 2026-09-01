@@ -20,11 +20,15 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 
-# Editors / OS
+# Editors / OS / local tooling
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# `next dev` regenerates this on every start; it is local scaffolding, not
+# part of the project.
+frontend/AGENTS.md
 
 # NOT ignored, on purpose:
 #   backend/demo.db  - the committed, pre-seeded database. Judges clone the
