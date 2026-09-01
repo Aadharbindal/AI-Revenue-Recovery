@@ -1,13 +1,26 @@
 import os
 import sys
+import tempfile
 
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Point the app at a throwaway database *before* app.db is imported anywhere.
+# The suite creates and drops every table, so sharing the committed demo.db
+# would quietly empty it and leave a repo that serves no data on a clean clone.
+os.environ.setdefault(
+    "RECOVEROS_DB_PATH",
+    os.path.join(tempfile.gettempdir(), "recoveros_test.db"),
+)
+
 from app.core import ledger                       # noqa: E402
 from app.core.detector import detector            # noqa: E402
-from app.db import Base, SessionLocal, engine     # noqa: E402
+from app.db import DB_PATH, Base, SessionLocal, engine   # noqa: E402
+
+assert not DB_PATH.endswith(os.path.join("backend", "demo.db")), (
+    "tests must never run against the committed demo.db"
+)
 
 
 @pytest.fixture(autouse=True)
@@ -31,7 +44,7 @@ def db():
 
     The ledger caches the chain head in-process for speed, so it has to be
     reset alongside the tables — otherwise a test inherits the previous test's
-    head and every hash it writes is chained to a row that no longer exists.
+    head and every hash it writes chains to a row that no longer exists.
     """
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
