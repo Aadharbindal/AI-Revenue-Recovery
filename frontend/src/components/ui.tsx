@@ -3,17 +3,24 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 
+import { ChevronRightIcon, TerminalIcon } from "@/components/icons";
+
 /** Shared primitives. Dense, instrument-panel dark, monospace numerals. */
+
+export type Crumb = { label: string; accent?: boolean };
 
 export function Page({
   title,
   kicker,
+  crumbs,
   subtitle,
   children,
   actions,
 }: {
   title: string;
   kicker?: string;
+  /** Breadcrumb chips above the title. Renders a left accent rail with it. */
+  crumbs?: Crumb[];
   subtitle?: string;
   children: ReactNode;
   actions?: ReactNode;
@@ -22,24 +29,79 @@ export function Page({
     <div className="px-8 py-8 lg:px-10 max-w-[1400px]">
       <header className="mb-7 flex items-start justify-between gap-8">
         <div>
-          {kicker && (
+          {crumbs && <Breadcrumb crumbs={crumbs} />}
+          {kicker && !crumbs && (
             <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] mb-2 font-mono">
               {kicker}
             </div>
           )}
-          <h1 className="text-[26px] leading-tight font-semibold tracking-tight text-[var(--ink)]">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="text-sm text-[var(--ink-2)] mt-2 max-w-3xl leading-relaxed">
-              {subtitle}
-            </p>
-          )}
+
+          <div className={crumbs ? "relative pl-5" : undefined}>
+            {crumbs && (
+              <>
+                <span
+                  className="absolute left-0 top-[7px] w-[5px] h-[5px] rounded-full"
+                  style={{ background: "var(--treatment)" }}
+                />
+                <span
+                  className="absolute left-[2px] top-[16px] bottom-1 w-px"
+                  style={{
+                    background:
+                      "linear-gradient(to bottom, var(--treatment), transparent)",
+                  }}
+                />
+              </>
+            )}
+            <h1 className="text-[26px] leading-tight font-semibold tracking-tight text-[var(--ink)]">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="text-sm text-[var(--ink-2)] mt-2 max-w-3xl leading-relaxed">
+                {subtitle}
+              </p>
+            )}
+          </div>
         </div>
         {actions && <div className="shrink-0">{actions}</div>}
       </header>
       {children}
     </div>
+  );
+}
+
+function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
+  return (
+    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 mb-3.5">
+      {crumbs.map((crumb, i) => (
+        <div key={crumb.label} className="flex items-center gap-1.5">
+          {i > 0 && (
+            <ChevronRightIcon size={11} className="text-[var(--ink-4)]" />
+          )}
+          <span
+            className={`flex items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--surface)] py-1 ${
+              i === 0 ? "pl-1 pr-2.5" : "px-2.5"
+            }`}
+          >
+            {i === 0 && (
+              <span
+                className="flex items-center justify-center w-[18px] h-[18px] rounded bg-[var(--treatment)]/12 border border-[var(--treatment)]/25"
+                style={{ color: "var(--treatment)" }}
+              >
+                <TerminalIcon size={11} />
+              </span>
+            )}
+            <span
+              className="font-mono text-[10px] uppercase tracking-[0.14em]"
+              style={{
+                color: crumb.accent ? "var(--treatment)" : "var(--ink-2)",
+              }}
+            >
+              {crumb.label}
+            </span>
+          </span>
+        </div>
+      ))}
+    </nav>
   );
 }
 

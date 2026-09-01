@@ -3,28 +3,55 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { ComponentType } from "react";
 
+import {
+  ActivityIcon,
+  AlertIcon,
+  BarsIcon,
+  CasesIcon,
+  ChevronRightIcon,
+  FlaskIcon,
+  LedgerIcon,
+  ShieldIcon,
+  TerminalIcon,
+} from "@/components/icons";
 import { fetchHealth, type HealthStatus } from "@/lib/api";
 
-const GROUPS = [
+type IconType = ComponentType<{ className?: string; size?: number }>;
+
+/**
+ * Two groups, on purpose. "Result" is what the system claims; "Evidence" is
+ * what backs the claim up. A judge should be able to move from one to the other
+ * without being told which pages are which.
+ */
+const GROUPS: { label: string; links: { href: string; label: string; icon: IconType }[] }[] = [
   {
     label: "Result",
     links: [
-      { href: "/", label: "Command Center" },
-      { href: "/experiment", label: "Experiment" },
-      { href: "/exceptions", label: "Exceptions" },
+      { href: "/", label: "Command Center", icon: TerminalIcon },
+      { href: "/experiment", label: "Experiment", icon: FlaskIcon },
+      { href: "/exceptions", label: "Exceptions", icon: AlertIcon },
     ],
   },
   {
     label: "Evidence",
     links: [
-      { href: "/run", label: "Live Batch" },
-      { href: "/cases", label: "Cases" },
-      { href: "/guardrails", label: "Guardrails" },
-      { href: "/audit", label: "Audit Ledger" },
+      { href: "/run", label: "Live Batch", icon: ActivityIcon },
+      { href: "/cases", label: "Cases", icon: CasesIcon },
+      { href: "/guardrails", label: "Guardrails", icon: ShieldIcon },
+      { href: "/audit", label: "Audit Ledger", icon: LedgerIcon },
     ],
   },
 ];
+
+// Identity markers, not status. Each service gets a stable colour so the rows
+// are scannable; whether it is actually connected is the dot on the right.
+const SERVICE_DOT: Record<string, string> = {
+  Razorpay: "#22c55e",
+  LLM: "#a855f7",
+  "Voice TTS": "#eab308",
+};
 
 export default function Nav() {
   const pathname = usePathname();
@@ -36,89 +63,175 @@ export default function Nav() {
   }, []);
 
   return (
-    <aside className="w-[220px] shrink-0 bg-[var(--surface)] border-r border-[var(--line)] flex flex-col">
-      <div className="px-5 py-6">
-        <Link href="/" className="block">
-          <h1 className="text-[17px] font-semibold text-[var(--ink)] tracking-tight">
-            Recover<span style={{ color: "var(--treatment)" }}>OS</span>
-          </h1>
-          <p className="text-[9.5px] text-[var(--ink-3)] mt-1.5 uppercase tracking-[0.16em] font-mono leading-relaxed">
-            The LLM never
-            <br />
-            touches a rupee
-          </p>
-        </Link>
-      </div>
+    // Flush against the page, square edges, sharing the border with the content
+    // area — a floating rounded card read as a separate application sitting
+    // next to the dashboard rather than part of it.
+    <aside className="w-[212px] shrink-0 border-r border-[var(--line)] bg-[var(--surface)]">
+      <div className="h-full flex flex-col overflow-hidden">
+        <div className="px-4 pt-5 pb-4">
+          <Link href="/" className="block">
+            <h1 className="text-[18px] font-bold tracking-tight text-[var(--ink)] leading-none">
+              Recover<span style={{ color: "var(--treatment)" }}>OS</span>
+            </h1>
+            <p className="mt-2.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--ink-4)] leading-[1.7]">
+              The LLM never
+              <br />
+              touches a rupee
+            </p>
+          </Link>
+        </div>
 
-      <nav className="flex-1 px-3 space-y-5 overflow-y-auto">
-        {GROUPS.map((group) => (
-          <div key={group.label}>
-            <div className="px-3 mb-1.5 text-[9.5px] uppercase tracking-[0.16em] text-[var(--ink-4)] font-mono">
-              {group.label}
-            </div>
-            <div className="space-y-0.5">
-              {group.links.map((link) => {
-                const active =
-                  link.href === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(link.href);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`flex items-center gap-2.5 px-3 py-1.5 rounded text-[13px] transition-colors ${
-                      active
-                        ? "bg-[var(--surface-raised)] text-[var(--ink)] font-medium"
-                        : "text-[var(--ink-2)] hover:text-[var(--ink)] hover:bg-[var(--surface-raised)]/60"
-                    }`}
-                  >
-                    <span
-                      className="w-0.5 h-3.5 rounded-full shrink-0"
-                      style={{
-                        background: active ? "var(--treatment)" : "transparent",
-                      }}
-                    />
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </nav>
+        <div className="mx-4 border-t border-[var(--line)]" />
 
-      {/*
-        Says out loud which integrations are live. A viewer should be able to
-        tell whether the payment links and message bodies on screen came from
-        real services or from the deterministic fallbacks, without taking the
-        README's word for it.
-      */}
-      <div className="px-4 py-4 border-t border-[var(--line)] text-[10.5px] font-mono space-y-1.5">
-        {down && <div className="text-[var(--critical)]">API unreachable</div>}
-        {health && (
-          <>
-            <Integration on={health.integrations.razorpay_test_mode} label="Razorpay" />
-            <Integration on={health.integrations.llm} label="LLM" />
-            <Integration on={health.integrations.voice_tts} label="Voice TTS" />
-            <div className="text-[var(--ink-4)] pt-1.5 leading-relaxed">
-              {health.data.cases} cases · {health.data.events} events
+        <nav className="flex-1 overflow-y-auto py-3.5">
+          {GROUPS.map((group, gi) => (
+            <div key={group.label} className={gi > 0 ? "mt-3.5" : ""}>
+              {gi > 0 && <div className="mx-4 mb-3.5 border-t border-[var(--line)]" />}
+
+              <div className="flex items-center gap-2 px-4 mb-1.5">
+                <span
+                  className="w-1 h-1 rounded-full shrink-0"
+                  style={{ background: "var(--treatment)" }}
+                />
+                <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--ink-3)]">
+                  {group.label}
+                </span>
+              </div>
+
+              <div className="space-y-px">
+                {group.links.map((link) => {
+                  const active =
+                    link.href === "/"
+                      ? pathname === "/"
+                      : pathname.startsWith(link.href);
+                  const Icon = link.icon;
+
+                  return (
+                    <div key={link.href} className="relative">
+                      {/* The rail sits flush to the panel edge, outside the card */}
+                      {active && (
+                        <span
+                          className="absolute left-0 top-0.5 bottom-0.5 w-0.5 rounded-r-full"
+                          style={{ background: "var(--treatment)" }}
+                        />
+                      )}
+                      <Link
+                        href={link.href}
+                        aria-current={active ? "page" : undefined}
+                        className={`ml-1.5 mr-2 flex items-center gap-2.5 rounded-md pl-1.5 pr-2 py-1 transition-colors ${
+                          active
+                            ? "bg-[var(--surface-raised)] border border-[var(--line-strong)]"
+                            : "border border-transparent hover:bg-[var(--surface-raised)]/50"
+                        }`}
+                      >
+                        <span
+                          className={`shrink-0 flex items-center justify-center rounded w-7 h-7 ${
+                            active
+                              ? "bg-[var(--treatment)]/12 border border-[var(--treatment)]/25"
+                              : ""
+                          }`}
+                          style={{
+                            color: active ? "var(--treatment)" : "var(--ink-3)",
+                          }}
+                        >
+                          <Icon size={active ? 15 : 16} />
+                        </span>
+
+                        <span
+                          className={`text-[12.5px] leading-none whitespace-nowrap ${
+                            active
+                              ? "text-[var(--ink)] font-medium"
+                              : "text-[var(--ink-2)]"
+                          }`}
+                        >
+                          {link.label}
+                        </span>
+
+                        {active && (
+                          <ChevronRightIcon
+                            className="ml-auto shrink-0"
+                            size={12}
+                          />
+                        )}
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </>
-        )}
+          ))}
+        </nav>
+
+        {/*
+          Says out loud which integrations are actually connected. A viewer
+          should be able to tell whether the payment links and message bodies on
+          screen came from live services or from the deterministic fallbacks,
+          without taking the README's word for it.
+        */}
+        <div className="px-2.5 pb-2.5 space-y-2">
+          {down && (
+            <div className="rounded-md border border-[var(--critical)]/40 bg-[var(--critical)]/[0.07] px-3 py-2 text-[11.5px] text-[var(--critical)]">
+              API unreachable
+            </div>
+          )}
+
+          {health && (
+            <>
+              <div className="rounded-md border border-[var(--line)] bg-[var(--surface-inset)]/50 px-3 py-2.5 space-y-2">
+                <Integration label="Razorpay" on={health.integrations.razorpay_test_mode} />
+                <Integration label="LLM" on={health.integrations.llm} />
+                <Integration label="Voice TTS" on={health.integrations.voice_tts} />
+              </div>
+
+              <div className="rounded-md border border-[var(--line)] bg-[var(--surface-inset)]/50 px-3 py-2.5 flex items-center gap-2 text-[11.5px]">
+                <span className="shrink-0" style={{ color: "var(--treatment)" }}>
+                  <BarsIcon size={13} />
+                </span>
+                <span className="tnum">
+                  <span style={{ color: "var(--treatment)" }} className="font-medium">
+                    {health.data.cases}
+                  </span>
+                  <span className="text-[var(--ink-3)]"> cases</span>
+                </span>
+                <span className="text-[var(--ink-4)]">·</span>
+                <span className="tnum">
+                  <span style={{ color: "var(--treatment)" }} className="font-medium">
+                    {health.data.events}
+                  </span>
+                  <span className="text-[var(--ink-3)]"> events</span>
+                </span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </aside>
   );
 }
 
-function Integration({ on, label }: { on: boolean; label: string }) {
+function Integration({ label, on }: { label: string; on: boolean }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 text-[11.5px]">
       <span
         className="w-1.5 h-1.5 rounded-full shrink-0"
-        style={{ background: on ? "var(--recovered)" : "var(--ink-4)" }}
+        style={{ background: SERVICE_DOT[label] ?? "var(--ink-3)" }}
       />
-      <span style={{ color: on ? "var(--ink-2)" : "var(--ink-4)" }}>{label}</span>
-      <span className="ml-auto text-[var(--ink-4)]">{on ? "live" : "fallback"}</span>
+      <span className="text-[var(--ink-2)]">{label}</span>
+
+      <span className="ml-auto flex items-center gap-2">
+        <span className="w-px h-3 bg-[var(--line-strong)]" />
+        <span className="text-[var(--ink-3)]">{on ? "live" : "fallback"}</span>
+        {/*
+          The state dot follows the state. Green here regardless would say the
+          integrations are connected when they are not, which is the one thing
+          this panel exists to be straight about.
+        */}
+        <span
+          className="w-1.5 h-1.5 rounded-full shrink-0"
+          style={{ background: on ? "var(--good)" : "var(--ink-4)" }}
+          title={on ? "connected" : "not configured — using deterministic fallback"}
+        />
+      </span>
     </div>
   );
 }

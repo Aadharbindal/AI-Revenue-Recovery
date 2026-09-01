@@ -70,7 +70,10 @@ export default function CommandCenter() {
 
   return (
     <Page
-      kicker="Razorpay AI Buildathon · Track 03"
+      crumbs={[
+        { label: "Razorpay AI Buildathon" },
+        { label: "Track 03", accent: true },
+      ]}
       title="Revenue at risk, and what came back"
       subtitle="725 failed payments and overdue invoices, worked for seven simulated days behind eleven policy gates — and measured against a fifth of the batch the agent was never allowed to touch."
     >
