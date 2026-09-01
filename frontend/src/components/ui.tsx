@@ -149,22 +149,80 @@ const TONES = {
   muted: "text-[var(--ink-2)]",
 } as const;
 
+// Hex per tone, so the icon chip and the corner wash can be tinted without a
+// second source of truth for the palette.
+const TONE_HEX: Record<keyof typeof TONES, string> = {
+  default: "#3987e5",
+  good: "#199e70",
+  bad: "#d03b3b",
+  warn: "#fab219",
+  accent: "#3987e5",
+  muted: "#8b909a",
+};
+
+/**
+ * A card is tinted by an accent that follows what the number *is* — recovered
+ * money is green, refusals amber, integrity blue. The wash is kept to a corner
+ * at ~8% so it reads as a family marker and never competes with the figure.
+ */
+function cardStyle(hex: string): React.CSSProperties {
+  return {
+    background: `radial-gradient(130% 90% at 0% 0%, ${hex}14 0%, transparent 58%), var(--surface)`,
+  };
+}
+
+function IconChip({
+  hex,
+  size = 32,
+  children,
+}: {
+  hex: string;
+  size?: number;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-lg shrink-0"
+      style={{
+        width: size,
+        height: size,
+        color: hex,
+        background: `${hex}1a`,
+        border: `1px solid ${hex}40`,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function Stat({
   label,
   value,
   sub,
   tone = "default",
   size = "md",
+  icon,
 }: {
   label: string;
   value: string;
   sub?: ReactNode;
   tone?: keyof typeof TONES;
   size?: "md" | "lg";
+  icon?: ReactNode;
 }) {
+  const hex = TONE_HEX[tone];
   return (
-    <div className="bg-[var(--surface)] border border-[var(--line)] rounded-lg p-5">
-      <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-3)] mb-2">
+    <div
+      className="border border-[var(--line)] rounded-lg p-5 flex flex-col"
+      style={cardStyle(hex)}
+    >
+      {icon && (
+        <div className="mb-3">
+          <IconChip hex={hex}>{icon}</IconChip>
+        </div>
+      )}
+      <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-3)] mb-2.5">
         {label}
       </div>
       <div
@@ -175,7 +233,64 @@ export function Stat({
         {value}
       </div>
       {sub && (
-        <div className="text-xs text-[var(--ink-3)] mt-2.5 leading-relaxed">{sub}</div>
+        <>
+          <div className="border-t border-[var(--line)] mt-4 mb-3" />
+          <div className="text-xs text-[var(--ink-3)] leading-relaxed">{sub}</div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The one number the page is about. Same anatomy as `Stat`, given room to
+ * breathe — and the label sits beside the icon rather than under it, because at
+ * this size a stacked label pushes the figure too far down the card.
+ */
+export function HeroStat({
+  label,
+  value,
+  aside,
+  tone = "good",
+  icon,
+  children,
+}: {
+  label: string;
+  value: string;
+  aside?: string;
+  tone?: keyof typeof TONES;
+  icon?: ReactNode;
+  children?: ReactNode;
+}) {
+  const hex = TONE_HEX[tone];
+  return (
+    <div
+      className="border border-[var(--line)] rounded-lg p-6 flex flex-col"
+      style={cardStyle(hex)}
+    >
+      <div className="flex items-center gap-3 mb-5">
+        {icon && <IconChip hex={hex}>{icon}</IconChip>}
+        <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-3)]">
+          {label}
+        </span>
+      </div>
+
+      <div
+        className={`font-mono font-semibold tracking-tight tnum text-[46px] leading-none ${TONES[tone]} tick-in`}
+      >
+        {value}
+      </div>
+      {aside && (
+        <div className="text-sm text-[var(--ink-3)] mt-3.5">{aside}</div>
+      )}
+
+      {children && (
+        <>
+          <div className="border-t border-[var(--line)] mt-5 mb-4" />
+          <div className="text-sm text-[var(--ink-2)] leading-relaxed">
+            {children}
+          </div>
+        </>
       )}
     </div>
   );

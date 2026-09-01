@@ -106,6 +106,51 @@ export function LedgerIcon(props: IconProps) {
   );
 }
 
+/** Money recovered — a line trending up. */
+export function TrendingUpIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M3 16.5l5.5-5.5 3.5 3.5L21 5.5" />
+      <path d="M15.5 5.5H21v5.5" />
+    </Svg>
+  );
+}
+
+/** Lift — bars, rising. */
+export function ChartUpIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M4 20V4" />
+      <path d="M4 20h16" />
+      <path d="M8 16.5v-3" />
+      <path d="M12.5 16.5v-6.5" />
+      <path d="M17 16.5V7" />
+    </Svg>
+  );
+}
+
+/** Spend. */
+export function RupeeIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M7 4h10" />
+      <path d="M7 8.5h10" />
+      <path d="M13 8.5c0 2.5-1.8 4.2-4.4 4.2H7l7.5 7.3" />
+    </Svg>
+  );
+}
+
+/** Refusals — the shield that says no. */
+export function ShieldAlertIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M12 2.8 4.5 6v6c0 4.6 3.1 8.3 7.5 9.4 4.4-1.1 7.5-4.8 7.5-9.4V6L12 2.8Z" />
+      <path d="M12 8.5v4" />
+      <path d="M12 16h.01" />
+    </Svg>
+  );
+}
+
 export function ChevronRightIcon(props: IconProps) {
   return (
     <Svg {...props} size={props.size ?? 16}>

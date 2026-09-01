@@ -6,7 +6,23 @@ import { useEffect, useState } from "react";
 import ActivityRibbon from "@/components/charts/ActivityRibbon";
 import DivergenceChart from "@/components/charts/DivergenceChart";
 import MoneyFlow from "@/components/charts/MoneyFlow";
-import { Card, Failed, Loading, Note, Page, Pill, Stat } from "@/components/ui";
+import {
+  ChartUpIcon,
+  LedgerIcon,
+  RupeeIcon,
+  ShieldAlertIcon,
+  TrendingUpIcon,
+} from "@/components/icons";
+import {
+  Card,
+  Failed,
+  HeroStat,
+  Loading,
+  Note,
+  Page,
+  Pill,
+  Stat,
+} from "@/components/ui";
 import {
   fetchExperiment,
   fetchFlow,
@@ -79,37 +95,31 @@ export default function CommandCenter() {
     >
       {/* ── The hero. Two numbers, and the honest one is bigger. ───────── */}
       <div className="grid lg:grid-cols-[1.15fr_1fr] gap-4 mb-4">
-        <div className="bg-[var(--surface)] border border-[var(--line)] rounded-lg p-6 flex flex-col justify-between">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-3)] mb-3">
-              Incremental revenue recovered
-            </div>
-            <div className="flex items-baseline gap-3 flex-wrap">
-              <span className="font-mono font-semibold tracking-tight text-[52px] leading-none text-[var(--recovered)] tnum tick-in">
-                {rupeesShort(e.value_incremental_paise)}
-              </span>
-              <span className="text-sm text-[var(--ink-3)]">
-                of {rupeesShort(e.amount_at_risk_paise)} at risk
-              </span>
-            </div>
-          </div>
-          <p className="text-sm text-[var(--ink-2)] leading-relaxed mt-5">
-            Gross recovery was{" "}
-            <span className="text-[var(--ink)] font-mono">
-              {rupeesShort(e.treatment_gross_recovered_paise)}
-            </span>
-            . But{" "}
-            <span className="text-[var(--ink)] font-mono">{pct(e.control_rate)}</span>{" "}
-            of untouched cases came back on their own, and that share is not ours
-            to claim. Only the difference is.
-          </p>
-        </div>
+        <HeroStat
+          label="Incremental revenue recovered"
+          value={rupeesShort(e.value_incremental_paise)}
+          aside={`of ${rupeesShort(e.amount_at_risk_paise)} at risk`}
+          tone="good"
+          icon={<TrendingUpIcon size={17} />}
+        >
+          Gross recovery was{" "}
+          <span className="text-[var(--recovered)] font-mono">
+            {rupeesShort(e.treatment_gross_recovered_paise)}
+          </span>
+          . But{" "}
+          <span className="text-[var(--treatment)] font-mono">
+            {pct(e.control_rate)}
+          </span>{" "}
+          of untouched cases came back on their own, and that share is not ours
+          to claim. Only the difference is.
+        </HeroStat>
 
         <div className="grid grid-cols-2 gap-4">
           <Stat
             label="Net incremental lift"
             value={pp(e.net_lift)}
             tone={e.is_significant ? "good" : "warn"}
+            icon={<ChartUpIcon size={17} />}
             sub={
               <>
                 95% CI {(e.ci_lower * 100).toFixed(1)} to{" "}
@@ -122,18 +132,21 @@ export default function CommandCenter() {
           <Stat
             label="Spend"
             value={rupees(e.intervention_cost_paise)}
+            icon={<RupeeIcon size={17} />}
             sub={`${e.roi.toFixed(0)}× on ${e.roi_basis}`}
           />
           <Stat
             label="Actions refused"
             value={guardrails.total_blocks.toLocaleString("en-IN")}
             tone="warn"
+            icon={<ShieldAlertIcon size={17} />}
             sub={`by ${guardrails.gates.filter((g) => g.blocks > 0).length} of 11 gates`}
           />
           <Stat
             label="Audit ledger"
             value={audit.valid ? "VALID" : "BROKEN"}
-            tone={audit.valid ? "good" : "bad"}
+            tone={audit.valid ? "accent" : "bad"}
+            icon={<LedgerIcon size={17} />}
             sub={`${audit.records.toLocaleString("en-IN")} hash-chained events`}
           />
         </div>

@@ -48,6 +48,7 @@ export default function Guardrails() {
           label="Actions refused"
           value={g.total_blocks.toLocaleString("en-IN")}
           tone="warn"
+          sub={`Fired by ${g.gates.filter((x) => x.blocks > 0).length} of the 11 gates`}
         />
         <Stat
           label="Spend avoided"
