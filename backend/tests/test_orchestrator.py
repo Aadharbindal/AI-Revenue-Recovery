@@ -246,3 +246,57 @@ def test_the_run_is_reproducible(batch):
         expected = determine_outcome(case.case_id, case.recovery_class,
                                      arm="control")
         assert (case.state == "RECOVERED") == expected
+
+
+def test_rerunning_from_the_api_reproduces_the_same_numbers(db):
+    """
+    A batch re-run from the dashboard must land on the same result as the first.
+
+    It did not. `_reset` inferred which orders to un-pay from their current
+    status, which cannot distinguish the eight planted already-settled traps
+    from orders the agent had just recovered — so the traps were flipped to
+    unpaid and vanished on the second run, and the totals drifted. Statuses are
+    now restored from the value they were seeded with.
+    """
+    from app.api.batch import _reset
+    from app.db import Base, engine
+
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    ledger.reset_head_cache()
+
+    data = generate_dataset(seed=42)
+    order_owner = {o["order_id"]: o["customer_id"] for o in data["orders"]}
+    invoice_owner = {i["invoice_id"]: i["customer_id"] for i in data["invoices"]}
+    for case in data["cases"]:
+        case["customer_id"] = (
+            order_owner.get(case["entity_id"]) if case["entity_type"] == "order"
+            else invoice_owner.get(case["entity_id"])
+        )
+    kept = [c for c in data["cases"] if c["entity_type"] == "invoice"][:30] + \
+           [c for c in data["cases"] if c["entity_type"] == "order"][:90]
+
+    db.bulk_insert_mappings(Customer, data["customers"])
+    db.bulk_insert_mappings(Order, data["orders"])
+    db.bulk_insert_mappings(Payment, data["payments"])
+    db.bulk_insert_mappings(Invoice, data["invoices"])
+    db.bulk_insert_mappings(Case, kept)
+    db.commit()
+
+    def snapshot():
+        return sorted(
+            (c.case_id, c.state, c.touches_used, c.intervention_cost_paise)
+            for c in db.query(Case)
+        )
+
+    Orchestrator(db, real_link_budget=0).run()
+    first = snapshot()
+
+    _reset(db)
+    Orchestrator(db, real_link_budget=0).run()
+    second = snapshot()
+
+    assert first == second, (
+        f"{sum(1 for a, b in zip(first, second) if a != b)} cases resolved "
+        f"differently on the second run"
+    )

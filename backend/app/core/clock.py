@@ -26,6 +26,10 @@ Timeline
                           the first ticks run
 """
 
+# Re-exported deliberately: the rest of the codebase reaches for time through
+# this module (`clock.datetime`, `clock.timedelta`) rather than importing
+# datetime directly, which keeps `datetime.now()` from creeping back into the
+# decision path unnoticed.
 from datetime import datetime, timedelta, timezone
 
 IST = timezone(timedelta(hours=5, minutes=30))

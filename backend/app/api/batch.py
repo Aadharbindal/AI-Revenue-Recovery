@@ -47,12 +47,18 @@ def _reset(db: Session):
         case.promise_date = None
         case.exception_reason = None
 
-    from app.models import Order
-    for order in db.query(Order).filter(Order.status == "paid"):
-        # Orders the *agent* recovered go back to unpaid; the ones planted as
-        # already-settled traps stay paid, or the trap would vanish on re-run.
-        if order.external_settlement_tick is None:
-            order.status = "abandoned"
+    # Restore every entity to the status it was seeded with. Deriving this from
+    # the current row does not work: an order sitting at "paid" might be one of
+    # the eight planted already-settled traps, one the agent recovered, or one
+    # settled out of band mid-run, and those three want different resets. The
+    # seeded value is recorded, so use it.
+    from app.models import Invoice, Order
+    for order in db.query(Order):
+        if order.status != order.initial_status:
+            order.status = order.initial_status
+    for invoice in db.query(Invoice):
+        if invoice.status != invoice.initial_status:
+            invoice.status = invoice.initial_status
 
     db.commit()
     ledger.reset_head_cache()

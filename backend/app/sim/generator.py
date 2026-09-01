@@ -262,6 +262,12 @@ def generate_dataset(seed: int = 42) -> dict:
         order_by_id[oid]["status"] = "paid"
     traps["already_paid_orders"] = len(already_paid)
 
+    # Snapshot the seeded status so a re-run can restore it exactly. Without
+    # this, resetting has to guess which paid orders were traps and which the
+    # agent recovered, and the traps quietly disappear on the second run.
+    for order in orders:
+        order["initial_status"] = order["status"]
+
     # Trap 2b — orders that get settled through some other route *while the
     # agent is mid-ladder*. Trap 2 tests whether we notice before starting;
     # this tests whether we notice before the next touch. G09 has to catch it,
@@ -311,6 +317,7 @@ def generate_dataset(seed: int = 42) -> dict:
             "due_date": iso(due_date),
             "days_overdue": days_overdue,
             "status": "overdue",
+            "initial_status": "overdue",
             "last_promise_date": None,
             "promise_kept": False,
         })

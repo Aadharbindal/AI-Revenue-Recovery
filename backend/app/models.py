@@ -33,6 +33,14 @@ class Order(Base):
     currency = Column(String, default="INR")
     created_at = Column(String)                   # ISO-8601 UTC
     status = Column(String)                       # attempted, paid, abandoned
+
+    # The status this order was seeded with. Re-running a batch has to restore
+    # exactly this, not a guess: eight orders are planted as already-settled
+    # traps, and inferring "was it paid before?" from the current row silently
+    # erases them on the second run. Stored explicitly so the reset is correct
+    # by construction rather than by reasoning.
+    initial_status = Column(String)
+
     cart_summary = Column(String)
     arm = Column(String)                          # treatment, control
 
@@ -78,6 +86,7 @@ class Invoice(Base):
     due_date = Column(String)                     # ISO-8601 UTC
     days_overdue = Column(Integer)
     status = Column(String)
+    initial_status = Column(String)               # see Order.initial_status
     last_promise_date = Column(String, nullable=True)
     promise_kept = Column(Boolean, default=False)
 
