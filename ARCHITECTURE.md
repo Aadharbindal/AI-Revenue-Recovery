@@ -27,6 +27,8 @@ the action row, and the batch continues.
 
 ## The pipeline
 
+![RecoverOS architecture](docs/diagrams/architecture.svg)
+
 ```
                           ┌───────────────────────────────┐
   payment history ───────▶│ detector                      │
