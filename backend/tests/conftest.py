@@ -14,6 +14,17 @@ os.environ.setdefault(
     os.path.join(tempfile.gettempdir(), "recoveros_test.db"),
 )
 
+# Tests must never reach a provider. Once real keys are configured the
+# orchestrator would make live LLM calls and mint real payment links inside the
+# suite - slow, flaky, and billed.
+#
+# Unsetting the keys does not work: importing litellm calls `load_dotenv()`
+# itself, so every key the suite removes is quietly restored the moment
+# anything touches the LLM client. That cost 65 seconds a run in network
+# timeouts before it was understood. This flag is checked at call time and
+# nothing else can undo it.
+os.environ["RECOVEROS_OFFLINE"] = "1"
+
 from app.core import ledger                       # noqa: E402
 from app.core.detector import detector            # noqa: E402
 from app.db import DB_PATH, Base, SessionLocal, engine   # noqa: E402

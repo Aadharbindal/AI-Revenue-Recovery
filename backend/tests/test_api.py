@@ -70,6 +70,27 @@ def client():
     ledger.reset_head_cache()
 
 
+# --------------------------------------------------------------- hermeticity
+
+def test_the_suite_cannot_reach_a_provider():
+    """
+    The tests must behave identically with keys configured and without them.
+
+    Unsetting the keys is not enough — importing litellm calls `load_dotenv()`
+    and restores them — so the guard is an explicit flag checked at call time.
+    This asserts the behaviour rather than the environment: with real keys in
+    .env, the client must still return a deterministic template and the link
+    builder must still refuse to mint.
+    """
+    from app.llm.client import get_message_template
+    from app.razorpay_client.links import has_credentials
+
+    template = get_message_template("NUDGE_CUSTOMER", 1, "whatsapp", "en")
+    assert not template["llm_used"]
+    assert template["llm_rejected_reason"] == "OFFLINE"
+    assert not has_credentials()
+
+
 # ------------------------------------------------------- the validator page
 
 def test_every_sample_is_labelled_with_what_it_actually_does(client):

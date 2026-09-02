@@ -32,6 +32,11 @@ class RazorpayError(RuntimeError):
 
 
 def has_credentials() -> bool:
+    # RECOVEROS_OFFLINE forces simulated links regardless of configuration, so
+    # a test run can never mint a real one. Importing litellm re-reads .env and
+    # restores cleared keys, so removing them is not a reliable guard.
+    if os.environ.get("RECOVEROS_OFFLINE"):
+        return False
     return bool(os.environ.get("RZP_KEY_ID") and os.environ.get("RZP_KEY_SECRET"))
 
 

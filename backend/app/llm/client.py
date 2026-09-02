@@ -38,6 +38,18 @@ except ImportError:  # the repo must run with zero API keys and no litellm
 
 MODEL = os.environ.get("LLM_MODEL", "groq/llama-3.3-70b-versatile")
 
+
+def _offline() -> bool:
+    """
+    Hard switch that forces the deterministic path regardless of configuration.
+
+    Clearing the API keys is not enough to keep a test run off the network:
+    importing litellm calls `load_dotenv()` itself, which puts every key
+    straight back after the suite has removed it. An explicit flag cannot be
+    undone by a third party reading a file.
+    """
+    return bool(os.environ.get("RECOVEROS_OFFLINE"))
+
 # Cache key is (recovery_class, tier, language) — deliberately not the channel,
 # because channel only changes the length cap, which the validator enforces.
 _template_cache: dict = {}
@@ -79,6 +91,8 @@ def get_message_template(recovery_class: str, tier: int, channel: str,
     if cache_key in _template_cache:
         return _template_cache[cache_key]
 
+    if _offline():
+        return _fallback(recovery_class, channel, language, "OFFLINE")
     if not _HAS_LITELLM:
         return _fallback(recovery_class, channel, language, "LITELLM_NOT_INSTALLED")
     if not (os.environ.get("GROQ_API_KEY") or os.environ.get("GEMINI_API_KEY")):
