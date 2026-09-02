@@ -9,7 +9,7 @@ PYTHON  ?= python
 BACKEND := backend
 export PYTHONPATH := $(BACKEND)
 
-.PHONY: help demo install seed run-batch report verify voice test api web build clean
+.PHONY: help demo install seed run-batch report verify voice webhook test api web build clean
 
 help:
 	@echo "RecoverOS"
@@ -19,6 +19,7 @@ help:
 	@echo "  make test      run the test suite"
 	@echo "  make verify    recompute the audit chain from genesis"
 	@echo "  make voice     render the Hinglish voice scripts to audio"
+	@echo "  make webhook   post a real Razorpay payment.failed at the running API"
 	@echo "  make api       backend on http://localhost:8000"
 	@echo "  make web       dashboard on http://localhost:3000"
 	@echo ""
@@ -47,6 +48,10 @@ verify:
 
 voice:
 	$(PYTHON) $(BACKEND)/scripts/render_voice.py
+
+# Needs 'make api' running in another shell.
+webhook:
+	$(PYTHON) $(BACKEND)/scripts/send_webhook.py
 
 test:
 	$(PYTHON) -m pytest $(BACKEND)/tests -q

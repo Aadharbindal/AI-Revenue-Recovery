@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, Boolean, DateTime, JSON, ForeignKey, Index
+    Column, Integer, String, Boolean, DateTime, Float, JSON, ForeignKey, Index
 )
 from sqlalchemy.orm import relationship
 
@@ -168,3 +168,36 @@ class Event(Base):
 
 
 Index("ix_events_entity_ts", Event.entity_id, Event.event_id)
+
+
+class LiveDecision(Base):
+    """
+    A decision made on a real webhook rather than on a simulated tick.
+
+    Deliberately a separate table with a separate hash chain. The `events`
+    ledger is the simulation's record and the committed evaluation is derived
+    from it, so a single live decision written there would move the published
+    numbers - the run would stop being reproducible the first time anyone
+    demonstrated the webhook.
+
+    Same chaining rules, same verification, different book.
+    """
+
+    __tablename__ = "live_decisions"
+
+    decision_id = Column(Integer, primary_key=True, autoincrement=True)
+    received_at = Column(String)                  # ISO-8601 UTC, hashed verbatim
+    event_id = Column(String, index=True)         # Razorpay's x-razorpay-event-id
+    payment_id = Column(String, index=True)
+    signature_verified = Column(Boolean)
+    recovery_class = Column(String, index=True)
+    rule_id = Column(String)
+    tier = Column(Integer, nullable=True)
+    channel = Column(String, nullable=True)
+    allowed = Column(Boolean)
+    blocked_by = Column(String, nullable=True, index=True)
+    reason_code = Column(String, nullable=True)
+    latency_ms = Column(Float)
+    payload_json = Column(JSON)
+    prev_hash = Column(String)
+    this_hash = Column(String)

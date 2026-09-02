@@ -66,8 +66,9 @@ from deterministic templates and payment links are simulated and flagged as
 such. **You do not need our credentials to reproduce our numbers.**
 
 ```bash
-make test      # 182 tests
+make test      # 204 tests
 make verify    # recompute the audit chain from genesis
+make webhook   # post a real Razorpay payment.failed at a running API
 make api       # backend on :8000
 make web       # dashboard on :3000
 ```
@@ -86,6 +87,7 @@ python backend/scripts/run_batch.py      # run the 7-day simulation
 python backend/scripts/make_report.py    # regenerate EVALUATION.md
 python backend/scripts/verify_ledger.py  # recompute the audit chain
 python backend/scripts/render_voice.py   # render the voice scripts to audio
+python backend/scripts/send_webhook.py   # post a real Razorpay webhook
 python -m pytest backend/tests -q        # tests
 python -m uvicorn app.main:app --port 8000
 cd frontend && npm run dev
@@ -153,6 +155,58 @@ Payment links are minted live against Razorpay test mode up to a small budget
 and simulated beyond it — every link is stored with a flag saying which it is,
 and the dashboard shows it, so nothing on screen implies more live integration
 than there is.
+
+### The batch is not the only way in
+
+The fair objection to a simulation is that the logic might only work because a
+batch hands it a tidy world. So there is a production-shaped entry point:
+
+```bash
+make api                      # in one shell
+make webhook                  # in another
+```
+
+That posts [`examples/payment_failed.json`](examples/payment_failed.json) — a
+real Razorpay `payment.failed` envelope — signed the way Razorpay signs it, and
+prints the whole decision:
+
+```
+  recovery class  SWITCH_METHOD  (rule R-07)
+  next action     tier 1 | whatsapp | Rs 0.30
+  allowed         False   blocked by G02
+  gates run       11
+  latency         0.2 ms
+  signature       verified=True checked=True
+  executed        False
+
+  ok    G01  CONSENT            Consent verified for this channel
+  BLOCK G02  QUIET_HOURS        21:00 IST is inside the 9PM-9AM no-contact window
+  ok    G03  FREQUENCY_CAP      0 in 24h, 0 in 7d - under cap
+  ...
+```
+
+Change the failure and the lane changes with it:
+
+```bash
+python backend/scripts/send_webhook.py --reason issuer_down
+#   AUTO_RETRY    tier 0 | silent | Rs 0.00   — retry quietly, message nobody
+python backend/scripts/send_webhook.py --reason payment_blocked_by_risk
+#   MANUAL_REVIEW tier 4 | human  | Rs 50.00  — a person, never auto-contacted
+python backend/scripts/send_webhook.py --reason refund_issued
+#   DEAD          no action                   — the ladder is finished, spend nothing
+python backend/scripts/send_webhook.py --forge
+#   401 Signature does not match the request body
+```
+
+It calls `classify`, `get_next_action` and `evaluate` — the same functions the
+batch calls — and adds no decision logic of its own. An unsigned or altered
+body is refused with a 401; with no secret configured the decision still runs
+but reports `signature_verified: false`, never implying a check that did not
+happen.
+
+It decides, it does not send, and its records go to a separate hash-chained
+table so the committed evaluation cannot drift. What is still missing is the
+scheduler — see [docs/future-scope.md](docs/future-scope.md).
 
 ---
 
@@ -248,14 +302,19 @@ backend/
       policy.py            the eleven gates
       orchestrator.py      the tick loop
       ledger.py            hash-chained audit trail
+      live.py              one real webhook, through those same functions
     llm/                   prompts, validator, fallbacks, written-to-spoken
     sim/                   dataset generator, outcome oracle (the agent cannot read it)
     analytics/             experiment statistics, report rendering
     api/                   FastAPI routers
     models.py  db.py       schema and session
-  scripts/                 seed, run-batch, report, verify-ledger, render-voice
-  tests/                   182 tests
+  scripts/                 seed, run-batch, report, verify-ledger, render-voice,
+                           send-webhook
+  tests/                   204 tests
   demo.db                  committed and pre-seeded, so a clone shows these numbers
+
+examples/
+  payment_failed.json      a real Razorpay webhook, for `make webhook`
 
 frontend/src/
   app/                     command centre, live run, cases, case timeline,

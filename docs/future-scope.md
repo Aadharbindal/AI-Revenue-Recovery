@@ -34,14 +34,31 @@ the message points at a payment link, not a mandate-creation flow.
 **Why cut:** the routing decision and the ladder are the part worth judging;
 the handshake is provider integration.
 
-### Real-time streaming
+### Real-time streaming — the scheduler, not the decision
 
-The batch is a discrete-event simulation over a fixed horizon. Production would
-consume payment webhooks and act within seconds.
+This was listed here as cut, with the claim that "the decision path is already
+event-shaped, so the change is the scheduler, not the logic". That was an
+assertion, and this project's whole position is that assertions are worth less
+than things you can run. So the decision half is built:
 
-The decision path is already event-shaped — classifier, ladder, gates, executor
-all operate on one case at a time — so the change is the scheduler, not the
-logic. The clock abstraction exists partly to make that swap mechanical.
+`POST /api/live/payment-failed` takes a real Razorpay `payment.failed` webhook,
+verifies it with the same HMAC-SHA256 scheme against the same webhook secret
+Razorpay signs with, and returns the recovery class, the chosen rung and all
+eleven gate verdicts in well under a millisecond. It imports `classify`,
+`get_next_action` and `evaluate` — the same functions the batch calls — and
+adds no decision logic of its own, which is the only reason the demonstration
+means anything.
+
+Live decisions are written to a separate hash-chained table, `live_decisions`,
+not to the simulation's ledger. The committed evaluation is derived from that
+ledger, so a single live decision written there would move the published
+numbers the first time anyone tried the webhook.
+
+**Still cut:** the scheduler. The endpoint decides; it does not send, and it
+does not own a case over seven days — no follow-up ladder, no cooldown timers
+running in real time, no retry queue. Executing means a real message and a
+real charge against a real customer, and the frequency and attempt caps are
+enforced against a batch's history rather than a merchant's live one.
 
 ---
 

@@ -258,6 +258,37 @@ system.
 
 ---
 
+## The live path
+
+A simulation invites one fair objection: the logic might only work because a
+batch hands it a tidy world, one case at a time, with every fact pre-joined.
+
+`app/core/live.py` answers it by taking a real Razorpay `payment.failed`
+webhook and running it through `classify`, `get_next_action` and `evaluate` —
+literally the same three functions the tick loop calls. It imports them; it
+does not reimplement them. If it did, the demonstration would prove nothing,
+because two implementations agreeing is not the same as one implementation
+being reused.
+
+Two things differ from a tick, and both are deliberate:
+
+**The clock.** A webhook arrives at a real instant, so `datetime.now(utc)` is
+correct here and nowhere else. The batch reads the fixed clock precisely so it
+stays reproducible; borrowing that clock for a live event would date every
+decision to a fixed day in the past.
+
+**The book.** Live decisions are appended to `live_decisions`, a separate
+hash-chained table with its own verification, not to `events`. The committed
+evaluation is derived from `events` — so one live decision written there would
+move the published numbers the first time anyone tried the webhook, and the
+run would stop being reproducible. Same chaining rules, different book.
+
+The endpoint decides and stops. Sending would mean a real message and a real
+charge; the scheduler that would own a case across seven days of real time is
+listed as cut in [docs/future-scope.md](docs/future-scope.md).
+
+---
+
 ## Data model
 
 `customers · orders · payments · invoices · cases · actions · events`
