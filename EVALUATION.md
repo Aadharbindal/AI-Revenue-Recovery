@@ -12,24 +12,24 @@ Every number on this page is produced by `make report` from the committed databa
 
 | Metric | Value |
 | --- | --- |
-| Cases in the batch | 725 |
+| Cases in the batch | 815 |
 | Observation window | 84 ticks x 2h (7 days) |
-| Amount at risk | Rs 10,603,380.00 |
-| Treatment arm | 578 cases |
-| Control arm (never contacted) | 147 cases |
-| Gross recovery, treatment | 35.1% (203/578) |
-| Gross recovery, control | 16.3% (24/147) |
-| **Net incremental lift** | **+18.8 pp** (95% CI 11.7 to 25.9) |
-| Value-weighted lift | +30.0 pp of amount at risk |
-| **Incremental amount recovered** | **Rs 2,404,082.32** |
-| Intervention spend | Rs 1,533.10 |
-| ROI (variable messaging cost only) | 1568x |
-| Lift needed to break even | 0.019 pp of amount at risk |
-| Cost per incremental recovery | Rs 14.11 |
+| Amount at risk | Rs 11,077,285.00 |
+| Treatment arm | 652 cases |
+| Control arm (never contacted) | 163 cases |
+| Gross recovery, treatment | 33.4% (218/652) |
+| Gross recovery, control | 19.0% (31/163) |
+| **Net incremental lift** | **+14.4 pp** (95% CI 7.4 to 21.4) |
+| Value-weighted lift | +21.1 pp of amount at risk |
+| **Incremental amount recovered** | **Rs 1,834,216.61** |
+| Intervention spend | Rs 1,908.10 |
+| ROI (variable messaging cost only) | 961x |
+| Lift needed to break even | 0.022 pp of amount at risk |
+| Cost per incremental recovery | Rs 20.30 |
 
 ### Is the lift real?
 
-Yes. The 95% confidence interval (11.7 to 25.9 pp) excludes zero, so at n=578 treatment and n=147 control the effect is distinguishable from no effect.
+Yes. The 95% confidence interval (7.4 to 21.4 pp) excludes zero, so at n=652 treatment and n=163 control the effect is distinguishable from no effect.
 
 ## By recovery class
 
@@ -37,49 +37,51 @@ Aggregate lift can hide a class that outreach is actively hurting.
 
 | Class | Treatment | Control | Lift | 95% CI | Spend |
 | --- | --- | --- | --- | --- | --- |
-| RECEIVABLE_CHASE | 49.2% (n=59) | 9.5% (n=21) | +39.6 pp | 21.7 to 57.5 | Rs 63.70 |
-| RETRY_TIMED | 43.3% (n=171) | 32.7% (n=49) | +10.6 pp | -4.5 to 25.7 | Rs 37.00 |
-| AUTO_RETRY | 55.7% (n=106) | 4.2% (n=24) | +51.5 pp | 39.1 to 63.9 | Rs 12.10 |
-| NUDGE_CUSTOMER | 24.2% (n=99) | 9.5% (n=21) | +14.7 pp | -0.4 to 29.8 | Rs 34.60 |
-| SWITCH_METHOD | 19.0% (n=84) | 12.0% (n=25) | +7.0 pp | -8.2 to 22.3 | Rs 35.70 |
-| MANUAL_REVIEW | 3.6% (n=28) | 0.0% (n=3) | +3.6 pp | -3.3 to 10.4 | Rs 1,350.00 |
-| DEAD | 0.0% (n=31) | 0.0% (n=4) | +0.0 pp | 0.0 to 0.0 | Rs 0.00 |
+| RECEIVABLE_CHASE | 34.4% (n=64) | 6.2% (n=16) | +28.1 pp | 11.5 to 44.7 | Rs 68.80 |
+| RETRY_TIMED | 44.2% (n=163) | 40.0% (n=40) | +4.2 pp | -12.8 to 21.2 | Rs 28.70 |
+| AUTO_RETRY | 56.1% (n=98) | 21.1% (n=19) | +35.1 pp | 14.3 to 55.9 | Rs 14.40 |
+| SWITCH_METHOD | 18.9% (n=90) | 8.0% (n=25) | +10.9 pp | -2.5 to 24.2 | Rs 32.20 |
+| NUDGE_CUSTOMER | 24.4% (n=86) | 16.7% (n=30) | +7.8 pp | -8.4 to 23.9 | Rs 29.20 |
+| CHECKOUT_ABANDONED | 29.2% (n=72) | 11.1% (n=18) | +18.1 pp | 0.1 to 36.0 | Rs 19.90 |
+| MANUAL_REVIEW | 5.9% (n=34) | 0.0% (n=9) | +5.9 pp | -2.0 to 13.8 | Rs 1,700.00 |
+| MANDATE_REPAIR | 21.6% (n=37) | 16.7% (n=6) | +5.0 pp | -27.7 to 37.6 | Rs 14.90 |
+| DEAD | 0.0% (n=8) | 0.0% (n=0) | +0.0 pp | 0.0 to 0.0 | Rs 0.00 |
 
 ## What the guardrails did
 
-1170 actions were refused, avoiding Rs 376.40 of spend and Rs 462,500.00 of priced compliance exposure.
+1370 actions were refused, avoiding Rs 410.50 of spend and Rs 583,500.00 of priced compliance exposure.
 
 | Gate | Blocks | Cases | Spend avoided | Compliance avoided |
 | --- | --- | --- | --- | --- |
-| G01 Consent | 34 | 34 | Rs 13.20 | Rs 7,500.00 |
-| G02 Quiet hours | 349 | 332 | Rs 121.50 | Rs 174,500.00 |
-| G03 Frequency cap | 561 | 327 | Rs 158.10 | Rs 280,500.00 |
-| G04 Attempt cap | 48 | 48 | Rs 9.60 | Rs 0.00 |
-| G05 Cooldown | 72 | 72 | Rs 21.60 | Rs 0.00 |
-| G06 Amount band | 9 | 9 | Rs 52.40 | Rs 0.00 |
+| G01 Consent | 45 | 45 | Rs 22.40 | Rs 12,000.00 |
+| G02 Quiet hours | 443 | 420 | Rs 157.40 | Rs 221,500.00 |
+| G03 Frequency cap | 700 | 405 | Rs 203.60 | Rs 350,000.00 |
+| G04 Attempt cap | 33 | 33 | Rs 6.60 | Rs 0.00 |
+| G05 Cooldown | 64 | 64 | Rs 19.20 | Rs 0.00 |
+| G06 Amount band | 3 | 3 | Rs 0.90 | Rs 0.00 |
 | G07 Risk hold | 0 | 0 | Rs 0.00 | Rs 0.00 |
-| G08 Issuer health | 97 | 97 | Rs 0.00 | Rs 0.00 |
-| G09 Duplicate payment | 0 | 0 | Rs 0.00 | Rs 0.00 |
+| G08 Issuer health | 80 | 80 | Rs 0.00 | Rs 0.00 |
+| G09 Duplicate payment | 2 | 2 | Rs 0.40 | Rs 0.00 |
 | G10 Stopping rule | 0 | 0 | Rs 0.00 | Rs 0.00 |
 | G11 Ladder order | 0 | 0 | Rs 0.00 | Rs 0.00 |
 
-G07 (Risk hold), G09 (Duplicate payment), G10 (Stopping rule), G11 (Ladder order) blocked nothing. That is the expected result, not a missing feature: the ladder never proposes the action those gates exist to refuse. They are the backstop that would catch a bug upstream, and if they ever fire there is one.
+G07 (Risk hold), G10 (Stopping rule), G11 (Ladder order) blocked nothing. That is the expected result, not a missing feature: the ladder never proposes the action those gates exist to refuse. They are the backstop that would catch a bug upstream, and if they ever fire there is one.
 
 ## Delivery
 
 | Tier | Sent | Spend | Channels |
 | --- | --- | --- | --- |
-| 0 | 277 | Rs 0.00 | silent x277 |
-| 1 | 311 | Rs 93.30 | email x69, whatsapp x242 |
-| 2 | 277 | Rs 59.50 | sms x236, whatsapp x41 |
-| 3 | 22 | Rs 33.00 | voice x22 |
-| 4 | 27 | Rs 1,350.00 | human x27 |
+| 0 | 261 | Rs 0.00 | silent x261 |
+| 1 | 370 | Rs 111.00 | email x78, whatsapp x292 |
+| 2 | 304 | Rs 65.30 | sms x259, whatsapp x45 |
+| 3 | 23 | Rs 34.50 | voice x23 |
+| 4 | 34 | Rs 1,700.00 | human x34 |
 
-Message bodies from the LLM: 0. From the deterministic fallback: 601.
+Message bodies from the LLM: 0. From the deterministic fallback: 688.
 
 Fallback reasons:
 
-- `NO_API_KEY` x601
+- `NO_API_KEY` x688
 
 Live Razorpay test-mode payment links minted: 0. The rest are simulated and flagged as such in the database, so no chart implies more live integration than there is.
 
@@ -89,21 +91,21 @@ Everything the system did not recover, grouped by why. This is part of the resul
 
 | Reason | Cases | Amount left on the table |
 | --- | --- | --- |
-| Still open when the 7-day observation window closed | 227 | Rs 3,186,867.00 |
-| Control arm - observed with no intervention | 119 | Rs 2,247,406.00 |
-| No consent on any channel available at tier 2 | 18 | Rs 384,697.00 |
-| Attempt budget exhausted | 48 | Rs 343,367.00 |
-| Number on the national DND registry | 4 | Rs 247,154.00 |
-| Escalation ladder complete - no cheaper step left | 26 | Rs 190,781.00 |
-| The mandate is gone; there is nothing left to retry against | 27 | Rs 162,909.00 |
-| Customer revoked consent | 11 | Rs 94,648.00 |
-| Already settled on another attempt - chasing it would risk a double charge | 8 | Rs 50,093.00 |
-| No consent on any channel available at tier 1 | 1 | Rs 1,949.00 |
-| Amount is below the floor where recovery pays for itself | 9 | Rs 290.00 |
+| Still open when the 7-day observation window closed | 286 | Rs 3,494,906.00 |
+| Control arm - observed with no intervention | 132 | Rs 2,050,529.00 |
+| No consent on any channel available at tier 2 | 19 | Rs 667,261.00 |
+| Number on the national DND registry | 9 | Rs 580,740.00 |
+| Escalation ladder complete - no cheaper step left | 57 | Rs 344,046.00 |
+| Customer revoked consent | 15 | Rs 303,271.00 |
+| Attempt budget exhausted | 33 | Rs 242,939.00 |
+| Already settled on another attempt - chasing it would risk a double charge | 8 | Rs 47,616.00 |
+| Order was already settled on another attempt | 2 | Rs 17,342.00 |
+| No consent on any channel available at tier 1 | 2 | Rs 3,253.00 |
+| Amount is below the floor where recovery pays for itself | 3 | Rs 70.00 |
 
 ## Audit integrity
 
-- Ledger events: 3674
+- Ledger events: 4185
 - Chain valid: **True**
 - Broken rows: 0
 

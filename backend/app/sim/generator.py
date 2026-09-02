@@ -31,6 +31,11 @@ N_CUSTOMERS = 420
 N_ORDERS = 600
 N_INVOICES = 80
 
+# Carts left before any payment was attempted. These carry no error taxonomy at
+# all, which is precisely why they are their own lane: the classifier has
+# nothing to route on and the ladder has nothing to retry.
+N_ABANDONED_CARTS = 90
+
 CONTROL_PCT = 20
 ARM_SALT = "recoveros-v1"
 
@@ -55,9 +60,11 @@ CART_SUMMARIES = [
 
 # (error_source, error_step, error_reason, error_code, description)
 ERROR_PROFILES = [
-    (0.35, "bank", "payment_authorization", "insufficient_funds",
+    # Weights sum to 1.00. Adding a reason means taking the weight from
+    # somewhere, or the tail of the distribution quietly absorbs the remainder.
+    (0.32, "bank", "payment_authorization", "insufficient_funds",
      "BAD_REQUEST_ERROR", "Your account has insufficient balance"),
-    (0.18, "customer", "payment_authentication", "payment_timeout",
+    (0.17, "customer", "payment_authentication", "payment_timeout",
      "GATEWAY_ERROR", "Payment was not completed in time"),
     (0.12, "bank", "payment_authorization", "issuer_down",
      "GATEWAY_ERROR", "Issuing bank is temporarily unavailable"),
@@ -67,8 +74,14 @@ ERROR_PROFILES = [
      "BAD_REQUEST_ERROR", "The VPA entered is not valid"),
     (0.06, "internal", "payment_authorization", "payment_blocked_by_risk",
      "BAD_REQUEST_ERROR", "Payment blocked by risk engine"),
-    (0.05, "customer", "payment_initiation", "mandate_revoked",
+    # Subscription failures are ~9% of failed volume for a merchant that sells
+    # on auto-pay. Weighted so the lane has enough cases to be measurable at
+    # all — at 5% it produced a control arm of five and a confidence interval
+    # thirty-eight points wide, which measures nothing.
+    (0.06, "customer", "payment_initiation", "mandate_revoked",
      "BAD_REQUEST_ERROR", "The mandate for this subscription was revoked"),
+    (0.03, "customer", "payment_initiation", "mandate_expired",
+     "BAD_REQUEST_ERROR", "The mandate for this subscription has expired"),
     (0.03, "customer", "payment_authentication", "payment_cancelled",
      "BAD_REQUEST_ERROR", "Payment was cancelled by the customer"),
     (0.03, "gateway", "payment_response", "gateway_technical_error",
@@ -76,17 +89,44 @@ ERROR_PROFILES = [
 ]
 
 
+def _arm_key(entity_id: str, salt: str = ARM_SALT) -> str:
+    return hashlib.sha256((entity_id + salt).encode()).hexdigest()
+
+
 def assign_arm(entity_id: str, salt: str = ARM_SALT) -> str:
     """
-    Deterministic, entity-stable arm assignment.
+    Deterministic, entity-stable arm assignment for a single id.
 
     Hashing rather than `random.random()` means the arm is a pure function of
-    the id: it survives regeneration, reordering, and re-runs, and anyone can
+    the id: it survives regeneration, reordering and re-runs, and anyone can
     recompute it independently to check we did not move cases between arms
     after seeing the outcomes.
     """
-    h = hashlib.sha256((entity_id + salt).encode()).hexdigest()
-    return "control" if int(h[:8], 16) % 100 < CONTROL_PCT else "treatment"
+    return "control" if int(_arm_key(entity_id, salt)[:8], 16) % 100 < CONTROL_PCT \
+        else "treatment"
+
+
+def assign_arms(entity_ids, salt: str = ARM_SALT, control_pct: int = CONTROL_PCT) -> dict:
+    """
+    Stratified assignment: exactly `control_pct` of *this cohort* held out.
+
+    Hashing each id independently gives 20% only in expectation, and a small
+    cohort can land a long way from it. The 90 abandoned carts came out with 8
+    controls instead of 18, which left that lane's confidence interval so wide
+    it could not say anything — a measurement problem created by the sampling,
+    not by the policy.
+
+    Ranking ids by their hash and taking the lowest slice keeps every property
+    that mattered: the arm is still a pure function of the id and the salt,
+    still fixed before anything is known about a case, and still independently
+    recomputable by anyone who wants to check. It just guarantees each lane a
+    control group big enough to compare against.
+    """
+    ids = list(entity_ids)
+    ranked = sorted(ids, key=lambda i: _arm_key(i, salt))
+    n_control = round(len(ids) * control_pct / 100)
+    control = set(ranked[:n_control])
+    return {i: ("control" if i in control else "treatment") for i in ids}
 
 
 def _pick_error(rng: random.Random):
@@ -164,7 +204,7 @@ def generate_dataset(seed: int = 42) -> dict:
             "created_at": iso(created_at),
             "status": "abandoned",
             "cart_summary": rng.choice(CART_SUMMARIES),
-            "arm": assign_arm(order_id),
+            "arm": None,          # stratified per cohort below
             "external_settlement_tick": None,
         })
 
@@ -228,7 +268,7 @@ def generate_dataset(seed: int = 42) -> dict:
             "created_at": iso(created_at),
             "status": "abandoned",
             "cart_summary": rng.choice(CART_SUMMARIES),
-            "arm": assign_arm(order_id),
+            "arm": None,          # stratified per cohort below
             "external_settlement_tick": None,
         })
         payments.append({
@@ -252,6 +292,41 @@ def generate_dataset(seed: int = 42) -> dict:
         order_by_id[order_id] = orders[-1]
         payments_by_order[order_id] = [payments[-1]]
     traps["issuer_outage_payments"] = len(spike_order_ids)
+
+    # ------------------------------------------------------------------ abandoned carts
+    # Orders with no payment row at all. Smaller baskets than the average
+    # attempted order, because the ones people abandon skew toward impulse
+    # carts they were never certain about.
+    for j in range(N_ABANDONED_CARTS):
+        order_id = f"order_cart_{j:03d}"
+        cust = rng.choice(customers)
+        created_at = DATA_EPOCH + timedelta(
+            minutes=rng.randint(0, DATA_WINDOW_HOURS * 60 - 1)
+        )
+        orders.append({
+            "order_id": order_id,
+            "customer_id": cust["customer_id"],
+            "amount_paise": rng.randint(300, 9000) * 100,
+            "currency": "INR",
+            "created_at": iso(created_at),
+            "status": "abandoned",
+            "cart_summary": rng.choice(CART_SUMMARIES),
+            "arm": None,          # stratified per cohort below
+            "external_settlement_tick": None,
+        })
+        order_by_id[order_id] = orders[-1]
+    traps["abandoned_carts_no_attempt"] = N_ABANDONED_CARTS
+
+    # Three cohorts, each stratified to its own 20% control share: attempted
+    # orders, abandoned carts, and (below) invoices. Hashing every id into one
+    # pool would let a small cohort drift far from 20% and lose its own
+    # comparison.
+    attempted_ids = [o["order_id"] for o in orders if o["order_id"].startswith("order_0")
+                     or o["order_id"].startswith("order_spike")]
+    cart_ids = [o["order_id"] for o in orders if o["order_id"].startswith("order_cart")]
+    arms = {**assign_arms(attempted_ids), **assign_arms(cart_ids)}
+    for o in orders:
+        o["arm"] = arms[o["order_id"]]
 
     base_order_ids = [f"order_{i:04d}" for i in range(N_ORDERS)]
 
@@ -322,6 +397,8 @@ def generate_dataset(seed: int = 42) -> dict:
             "promise_kept": False,
         })
 
+    invoice_arms = assign_arms([i["invoice_id"] for i in invoices])
+
     # ------------------------------------------------------------------ cases
     cases = []
     case_idx = 0
@@ -356,7 +433,7 @@ def generate_dataset(seed: int = 42) -> dict:
             "amount_at_risk_paise": inv["amount_paise"],
             "recovery_class": None,
             "state": "OPEN",
-            "arm": assign_arm(inv["invoice_id"]),
+            "arm": invoice_arms[inv["invoice_id"]],
             "touches_used": 0,
             "last_touch_at": None,
             "resolution": None,

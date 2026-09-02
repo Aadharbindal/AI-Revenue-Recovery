@@ -30,6 +30,8 @@ class RecoveryClass(str, Enum):
     RETRY_TIMED = "RETRY_TIMED"
     SWITCH_METHOD = "SWITCH_METHOD"
     NUDGE_CUSTOMER = "NUDGE_CUSTOMER"
+    CHECKOUT_ABANDONED = "CHECKOUT_ABANDONED"
+    MANDATE_REPAIR = "MANDATE_REPAIR"
     RECEIVABLE_CHASE = "RECEIVABLE_CHASE"
     MANUAL_REVIEW = "MANUAL_REVIEW"
     DEAD = "DEAD"
@@ -44,7 +46,8 @@ class Classification:
 
 
 # Reason sets, named so the rules below read as sentences.
-TERMINAL_REASONS = {"mandate_revoked", "refund_issued"}
+TERMINAL_REASONS = {"refund_issued", "order_cancelled"}
+MANDATE_REASONS = {"mandate_revoked", "mandate_expired", "mandate_paused"}
 RISK_REASONS = {"payment_blocked_by_risk", "account_blocked"}
 INFRA_REASONS = {"issuer_down", "gateway_technical_error", "payment_timeout"}
 METHOD_REASONS = {
@@ -104,31 +107,54 @@ class CaseFacts:
 
 
 # (rule_id, predicate, class, human-readable why)
+#
+# Evaluated top to bottom, first match wins, and the ids run in that order so a
+# `rule_id` in the audit trail also tells you what was ruled out ahead of it.
 RULES = [
+    # --- hard stops, above every branch that could contact somebody ---------
     ("R-01", lambda f: f.already_paid, RecoveryClass.DEAD,
      "Already settled on another attempt - chasing it would risk a double charge"),
 
     ("R-02", lambda f: f.error_reason in TERMINAL_REASONS, RecoveryClass.DEAD,
-     "The mandate is gone; there is nothing left to retry against"),
+     "Refunded or cancelled - there is no longer a debt to recover"),
 
     ("R-03", lambda f: f.error_reason in RISK_REASONS, RecoveryClass.MANUAL_REVIEW,
      "Blocked by the risk engine - a human decides, we never auto-contact"),
 
-    ("R-04", lambda f: f.error_source in {"bank", "gateway"}
+    # --- routed by Razorpay's failure taxonomy -----------------------------
+    # A revoked mandate cannot be *retried*: the authorisation is gone, so every
+    # attempt against it is guaranteed to fail and to burn an attempt from the
+    # budget. But it can be *re-authorised*, which is a different action, not
+    # the absence of one. Calling this DEAD was the conservative reading and
+    # the wrong one - it wrote off recoverable subscription revenue instead of
+    # asking for a new mandate.
+    ("R-04", lambda f: f.error_reason in MANDATE_REASONS, RecoveryClass.MANDATE_REPAIR,
+     "Mandate is gone - retrying is futile, but re-authorisation is not"),
+
+    ("R-05", lambda f: f.error_source in {"bank", "gateway"}
              and f.error_reason in INFRA_REASONS, RecoveryClass.AUTO_RETRY,
      "Infrastructure failed, not the customer - retry silently once it is healthy"),
 
-    ("R-05", lambda f: f.error_reason == "insufficient_funds", RecoveryClass.RETRY_TIMED,
+    ("R-06", lambda f: f.error_reason == "insufficient_funds", RecoveryClass.RETRY_TIMED,
      "The money was not there yet - retry near payday before spending on outreach"),
 
-    ("R-06", lambda f: f.error_reason in METHOD_REASONS, RecoveryClass.SWITCH_METHOD,
+    ("R-07", lambda f: f.error_reason in METHOD_REASONS, RecoveryClass.SWITCH_METHOD,
      "This instrument cannot work - only a different method will"),
 
-    ("R-07", lambda f: f.entity_type == "invoice", RecoveryClass.RECEIVABLE_CHASE,
+    # --- routed by what the entity is, when there is no failure to route on --
+    ("R-08", lambda f: f.entity_type == "invoice", RecoveryClass.RECEIVABLE_CHASE,
      "B2B receivable - escalating reminder ladder, voice only if it is worth it"),
 
-    ("R-08", lambda f: f.error_source == "customer", RecoveryClass.NUDGE_CUSTOMER,
+    ("R-09", lambda f: f.error_source == "customer", RecoveryClass.NUDGE_CUSTOMER,
      "The customer abandoned the flow - a reminder with a working link is enough"),
+
+    # Nothing was ever attempted, so there is no error taxonomy to route on at
+    # all. This is the third lane in the brief's own scope line, and it behaves
+    # unlike every other class: no failure to diagnose, nothing to retry, only
+    # intent that did not convert.
+    ("R-10", lambda f: f.entity_type == "order" and f.attempt_count == 0,
+     RecoveryClass.CHECKOUT_ABANDONED,
+     "Cart left before any payment was attempted - intent, not failure"),
 ]
 
 RULE_EXPLANATIONS = {rule_id: why for rule_id, _, _, why in RULES}

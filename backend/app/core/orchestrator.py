@@ -32,6 +32,7 @@ from app.core import clock
 from app.core.classifier import classify
 from app.core.detector import detector
 from app.core.ladder import get_next_action, ActionIntent
+from app.core import ledger
 from app.core.ledger import append
 from app.core.policy import evaluate
 from app.llm.client import get_message_template, render
@@ -84,6 +85,50 @@ DEFAULT_REAL_LINK_BUDGET = 10
 
 def _row(obj) -> dict:
     return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+
+
+def reset_run_state(db: Session):
+    """
+    Rewind to the seeded state so a batch can be run again.
+
+    "Run the batch" means run it, not append to whatever the last run left
+    behind. Without this, a second `make run-batch` on the same database died
+    on a duplicate action id — which is exactly the sort of thing that only
+    surfaces when somebody presses the button twice during a demo.
+
+    Only derived rows are cleared. The dataset itself is untouched, so the
+    re-run is the same experiment rather than a different one.
+    """
+    db.query(Event).delete()
+    db.query(Action).filter(Action.tick >= 0).delete()
+
+    for case in db.query(Case):
+        case.state = "OPEN"
+        case.recovery_class = None
+        case.rule_id = None
+        case.touches_used = 0
+        case.last_touch_at = None
+        case.resolution = None
+        case.resolved_at = None
+        case.resolved_tick = None
+        case.recovered_paise = 0
+        case.intervention_cost_paise = 0
+        case.promise_date = None
+        case.exception_reason = None
+
+    # Restore every entity to the status it was seeded with. Deriving this from
+    # the current row does not work: an order sitting at "paid" might be one of
+    # the eight planted already-settled traps, one the agent recovered, or one
+    # settled out of band mid-run, and those three want different resets.
+    for order in db.query(Order):
+        if order.status != order.initial_status:
+            order.status = order.initial_status
+    for invoice in db.query(Invoice):
+        if invoice.status != invoice.initial_status:
+            invoice.status = invoice.initial_status
+
+    db.commit()
+    ledger.reset_head_cache()
 
 
 class Orchestrator:
@@ -422,6 +467,9 @@ class Orchestrator:
         first_time = key not in self._seen_blocks
 
         if first_time:
+            # Serialise the trail once and reuse it for both the action row and
+            # the ledger payload.
+            trail = decision.trail_as_dicts()
             self._seen_blocks.add(key)
             self.stats["actions_blocked"] += 1
             self.gate_blocks[decision.reason_code] += 1
@@ -437,7 +485,7 @@ class Orchestrator:
                 channel=intent.channel,
                 status="BLOCKED",
                 blocked_by=decision.blocked_by,
-                gate_decisions_json=decision.trail_as_dicts(),
+                gate_decisions_json=trail,
                 message_body=None,
                 cost_paise=0,
                 sent_at=None,
@@ -453,7 +501,7 @@ class Orchestrator:
                        "channel": intent.channel,
                        "value_protected_paise": decision.value_protected_paise,
                        "compliance_risk_avoided_paise": decision.compliance_risk_avoided_paise,
-                       "trail": decision.trail_as_dicts(),
+                       "trail": trail,
                    })
             self.emit({"type": "blocked", "case": case.case_id,
                        "gate": decision.blocked_by, "reason": decision.reason_code})

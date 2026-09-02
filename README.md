@@ -5,11 +5,19 @@
 Razorpay AI Buildathon — Track 03, AI Revenue Recovery.
 
 A failed payment is not one problem. A bank outage, an empty balance, an
-expired card and a risk block all show up as "payment failed", and the right
-response to each is different — one of them is *do nothing*. RecoverOS routes
-each failure on Razorpay's own error taxonomy, runs a bounded escalation
-ladder behind eleven policy gates, and measures what it actually recovered
-against a control arm it never touched.
+expired card, a lapsed subscription mandate and a risk block all show up as
+"payment failed", and the right response to each is different — one of them is
+*do nothing*. RecoverOS routes each failure on Razorpay's own error taxonomy,
+runs a bounded escalation ladder behind eleven policy gates, and measures what
+it actually recovered against a control arm it never touched.
+
+It covers all three lanes in the brief:
+
+| Lane | How it is handled |
+| --- | --- |
+| **Payment failures** | Routed on `error_source` + `error_step` into silent retry, timed retry, method switch, nudge, mandate repair, human review, or stop |
+| **Checkout abandonment** | Its own class — no error to diagnose and nothing to retry, so a shorter two-touch ladder |
+| **Overdue receivables** | Email → WhatsApp → Hinglish voice call, with a promise-to-pay hold |
 
 ---
 
@@ -84,24 +92,28 @@ Full methodology in **[EVALUATION.md](EVALUATION.md)**. Headline:
 
 | | |
 | --- | --- |
-| Cases | 725 (578 treatment, 147 control) |
-| Amount at risk | ₹1.06 Cr |
-| Gross recovery, treatment | 35.1% (203/578) |
-| Gross recovery, control | 16.3% (24/147) |
-| **Net incremental lift** | **+18.8 pp** (95% CI 11.7 → 25.9, significant) |
-| Incremental recovered | ₹24.04 L |
-| Spend | ₹1,533.10 |
-| Actions refused by guardrails | 1,170 |
-| Audit ledger | 3,674 events, chain valid |
+| Cases | 815 (652 treatment, 163 control) |
+| Amount at risk | ₹1.11 Cr |
+| Gross recovery, treatment | 33.4% (218/652) |
+| Gross recovery, control | 19.0% (31/163) |
+| **Net incremental lift** | **+14.4 pp** (95% CI 7.4 → 21.4, significant) |
+| Cost per incremental recovery | **₹20.30** |
+| Spend | ₹1,908.10 |
+| Actions refused by guardrails | 1,370 |
+| Audit ledger | 4,185 events, chain valid |
 
-Gross recovery would read 35.1%. But 16.3% of untouched cases came back on
+Gross recovery would read 33.4%. But 19.0% of untouched cases came back on
 their own, and that share is not ours to claim. Only the difference is.
 
-**Per class, four of six lanes cannot be distinguished from zero at this sample
-size, and the most expensive lane is not the one carrying the result** — the
-human-review queue is 88% of total spend for a lift whose interval includes
+**Per class, six of the nine lanes cannot be distinguished from zero at this
+sample size, and the most expensive lane is not the one carrying the result** —
+the human-review queue is 89% of total spend for a lift whose interval includes
 zero. That is in `EVALUATION.md` too, because it is the finding, not a
 footnote.
+
+The headline number to argue with is **₹20.30 per incremental recovery**, not
+the ROI multiple. The multiple is large because the cost model counts messaging
+and nothing else; the per-recovery figure is comparable to something.
 
 ---
 
@@ -175,6 +187,10 @@ clock, same numbers, on any machine, at any hour.
   of the simulation rather than a measurement of the policy.
 - **Confidence intervals on everything**, and a null result reported as null,
   with the sample size it would take to detect the effect.
+- **Stratified assignment.** Hashing each id gives 20% only in expectation, and
+  the 90 abandoned carts landed on 8 controls. Ranking ids by hash within each
+  cohort keeps the assignment a pure function of the id while guaranteeing every
+  lane a control group worth comparing against.
 
 ---
 
@@ -204,7 +220,7 @@ backend/app/analytics/ experiment statistics, report rendering
 backend/app/api/       FastAPI routers
 backend/tests/         126 tests
 frontend/src/app/      command centre, live run, cases, timeline, guardrails,
-                       experiment, exceptions, audit
+                       experiment, exceptions, audit, LLM validator
 docs/                  decision table, guardrails, assumptions, future scope
 2AM.md                 what broke, and how it was found
 ```

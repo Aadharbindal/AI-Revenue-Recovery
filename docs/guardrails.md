@@ -58,6 +58,7 @@ that never fires is indistinguishable from one that does not work.
 | Orders under ₹50 | 15 | G06 |
 | Risk-engine blocks | 6 | Classifier R-03, then G07 as backstop |
 | Customers already contacted by a legacy system | 3 | G03 |
+| Carts abandoned with no payment attempt | 90 | Classifier R-10 (the lane itself) |
 
 The last one is seeded as real `Action` rows at 3 AM and twice in a day —
 deliberately non-compliant history, because that is the mess a frequency cap

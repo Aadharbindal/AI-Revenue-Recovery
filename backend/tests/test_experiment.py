@@ -11,7 +11,7 @@ from app.analytics.experiment import (
     calculate_experiment_results, exception_report, lift_ci,
     per_class_breakdown, required_n_per_arm,
 )
-from app.sim.generator import assign_arm
+from app.sim.generator import assign_arm, assign_arms
 
 
 def case(arm, recovered, amount=100_000, cost=0, rc="NUDGE_CUSTOMER",
@@ -159,6 +159,33 @@ def test_arm_assignment_does_not_depend_on_outcomes():
     case. Nobody can move a case between arms after seeing how it went.
     """
     assert assign_arm("order_0001") == assign_arm("order_0001")
-    assert assign_arm("order_0001") != "" and assign_arm("order_0002") in {
-        "treatment", "control"
-    }
+    assert assign_arm("order_0002") in {"treatment", "control"}
+
+
+# ------------------------------------------------- stratified assignment
+
+def test_stratification_hits_the_split_exactly_on_a_small_cohort():
+    """
+    Per-id hashing gives 20% only in expectation. The 90 abandoned carts landed
+    on 8 controls instead of 18, which widened that lane's interval until it
+    could say nothing — a measurement problem created by the sampling rather
+    than by the policy.
+    """
+    ids = [f"order_cart_{i:03d}" for i in range(90)]
+    arms = assign_arms(ids)
+    controls = sum(1 for a in arms.values() if a == "control")
+    assert controls == 18
+
+
+def test_stratified_assignment_is_still_reproducible():
+    ids = [f"order_{i:04d}" for i in range(200)]
+    assert assign_arms(ids) == assign_arms(ids)
+    # And independent of the order they are handed over in.
+    assert assign_arms(ids) == assign_arms(list(reversed(ids)))
+
+
+def test_stratified_assignment_covers_every_id_exactly_once():
+    ids = [f"inv_{i:03d}" for i in range(80)]
+    arms = assign_arms(ids)
+    assert set(arms) == set(ids)
+    assert set(arms.values()) == {"treatment", "control"}

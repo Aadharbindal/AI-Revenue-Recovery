@@ -61,6 +61,17 @@ CLASS_CONTEXT = {
         "They abandoned the checkout part-way. Remind them their order is still "
         "saved and give them the link."
     ),
+    "CHECKOUT_ABANDONED": (
+        "They filled a cart and left without ever attempting payment. Nothing "
+        "failed, so do not apologise or mention a problem. Light and warm: the "
+        "cart is still there."
+    ),
+    "MANDATE_REPAIR": (
+        "Their subscription's auto-pay authorisation has lapsed, so the charge "
+        "could not be collected. Do NOT say their payment failed - nothing "
+        "failed and it is not their fault. Most customers do not know the "
+        "mandate ended. Explain it plainly and point at re-authorising."
+    ),
     "RECEIVABLE_CHASE": (
         "A business invoice is past its due date. Professional and factual, not "
         "pleading and not threatening. Acknowledge they may have already paid."

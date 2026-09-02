@@ -50,6 +50,31 @@ _TEXT = {
         "Hi {{name}}, {{amount}} ka payment adhura reh gaya tha. Order abhi bhi "
         "saved hai - yahan complete kar lijiye: {{payment_link}}",
 
+    ("CHECKOUT_ABANDONED", "en"):
+        "Hi {{name}}, your cart is still saved. {{amount}} to check out whenever "
+        "you are ready: {{payment_link}}",
+    ("CHECKOUT_ABANDONED", "hi"):
+        "Namaste {{name}}, aapka cart abhi bhi saved hai. {{amount}} ka payment "
+        "jab chahein yahan kar sakte hain: {{payment_link}}",
+    ("CHECKOUT_ABANDONED", "hinglish"):
+        "Hi {{name}}, aapka cart abhi bhi saved hai. {{amount}} ka checkout jab "
+        "convenient ho yahan kar lijiye: {{payment_link}}",
+
+    # Never says "your payment failed" — nothing failed. The subscription
+    # simply stopped, and most customers do not know it has.
+    ("MANDATE_REPAIR", "en"):
+        "Hi {{name}}, the auto-pay permission for your subscription has ended, "
+        "so we could not collect {{amount}}. You can set it up again in one "
+        "step here: {{payment_link}}",
+    ("MANDATE_REPAIR", "hi"):
+        "Namaste {{name}}, aapki subscription ki auto-pay permission khatam ho "
+        "gayi hai, isliye {{amount}} collect nahi ho paaya. Yahan se dobara "
+        "set kar sakte hain: {{payment_link}}",
+    ("MANDATE_REPAIR", "hinglish"):
+        "Hi {{name}}, aapki subscription ka auto-pay mandate expire ho gaya hai, "
+        "isliye {{amount}} nahi kat paaya. Ek step mein dobara set kijiye: "
+        "{{payment_link}}",
+
     ("RECEIVABLE_CHASE", "en"):
         "Hello {{name}}, this is a reminder from {{merchant}} about invoice "
         "{{invoice_id}} for {{amount}}, which is now {{days}} days past its due "

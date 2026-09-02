@@ -18,7 +18,7 @@ Two design choices worth defending:
    ones show up in the P&L.
 """
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import List, Optional
 
@@ -62,7 +62,16 @@ class GateResult:
     detail: str
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        # A literal, not `dataclasses.asdict`. Eleven of these are serialised
+        # for every proposed action across 815 cases and 84 ticks, and asdict
+        # deep-copies recursively — it was the single hottest call in the run.
+        return {
+            "gate_id": self.gate_id,
+            "name": self.name,
+            "allowed": self.allowed,
+            "reason_code": self.reason_code,
+            "detail": self.detail,
+        }
 
 
 @dataclass

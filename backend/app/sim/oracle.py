@@ -33,6 +33,14 @@ NO_INTERVENTION_BASELINE = {
     "RETRY_TIMED": 0.24,
     "SWITCH_METHOD": 0.11,
     "NUDGE_CUSTOMER": 0.14,
+    # An abandoned cart is the highest-intent, lowest-commitment state in the
+    # dataset: a meaningful share of people come back unprompted within a week.
+    # It is also the class where the agent has the least to add, because there
+    # is no failure to fix.
+    "CHECKOUT_ABANDONED": 0.17,
+    # Almost nobody re-authorises a lapsed mandate on their own — they either
+    # do not notice the subscription stopped, or they meant it to.
+    "MANDATE_REPAIR": 0.04,
     "RECEIVABLE_CHASE": 0.09,
     "MANUAL_REVIEW": 0.02,
     "DEAD": 0.00,
@@ -61,6 +69,17 @@ TIER_MARGINAL_LIFT = {
 
     ("NUDGE_CUSTOMER", 1): 0.10,
     ("NUDGE_CUSTOMER", 2): 0.05,
+
+    # A cart reminder converts, but modestly — the customer already chose not
+    # to finish once, and nothing about their situation has changed.
+    ("CHECKOUT_ABANDONED", 1): 0.09,
+    ("CHECKOUT_ABANDONED", 2): 0.03,
+
+    # The largest marginal lift in the model, and the one the old DEAD
+    # classification was throwing away: the customer usually has no idea their
+    # mandate lapsed, so telling them is most of the work.
+    ("MANDATE_REPAIR", 1): 0.19,
+    ("MANDATE_REPAIR", 2): 0.07,
 
     ("RECEIVABLE_CHASE", 1): 0.07,
     ("RECEIVABLE_CHASE", 2): 0.06,

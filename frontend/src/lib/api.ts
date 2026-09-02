@@ -264,6 +264,25 @@ export interface Flow {
   >;
 }
 
+export interface LlmSample {
+  id: string;
+  label: string;
+  note: string;
+  expect: "pass" | "reject";
+  channel: string;
+  language: string;
+  body: string;
+}
+
+export interface ValidationResponse {
+  ok: boolean;
+  reason: string | null;
+  checks: Record<string, boolean | number>;
+  would_send: string;
+  used: "llm_template" | "deterministic_fallback";
+  fallback_template: string;
+}
+
 export interface HealthStatus {
   status: string;
   simulation: {
@@ -310,6 +329,28 @@ export const fetchCases = (params: Record<string, string | number> = {}) => {
   return get<{ total: number; cases: CaseRow[] }>(`/cases${qs ? `?${qs}` : ""}`);
 };
 export const fetchCase = (id: string) => get<CaseDetail>(`/cases/${id}`);
+
+export const fetchLlmSamples = () =>
+  get<{
+    samples: LlmSample[];
+    banned_phrases: string[];
+    length_caps: Record<string, number>;
+    llm_calls_this_process: number;
+  }>("/llm/samples");
+
+export async function validateDraft(draft: {
+  body: string;
+  channel: string;
+  language: string;
+}): Promise<ValidationResponse> {
+  const res = await fetch(`${API_BASE}/llm/validate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(draft),
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} on /llm/validate`);
+  return res.json() as Promise<ValidationResponse>;
+}
 
 export const verifyLedger = () => get<AuditStatus>("/audit/verify");
 export const tamperLedger = () =>

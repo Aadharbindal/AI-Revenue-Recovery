@@ -4,111 +4,111 @@
     "batch_end": "2026-09-08T00:00:00+00:00",
     "ticks": 84,
     "tick_hours": 2,
-    "cases": 725,
-    "events": 3674
+    "cases": 815,
+    "events": 4185
   },
   "experiment": {
-    "treatment_n": 578,
-    "treatment_recovered": 203,
-    "treatment_rate": 0.35121107266435986,
-    "control_n": 147,
-    "control_recovered": 24,
-    "control_rate": 0.16326530612244897,
-    "net_lift": 0.1879457665419109,
-    "ci_lower": 0.1166399358416845,
-    "ci_upper": 0.2592515972421373,
+    "treatment_n": 652,
+    "treatment_recovered": 218,
+    "treatment_rate": 0.3343558282208589,
+    "control_n": 163,
+    "control_recovered": 31,
+    "control_rate": 0.1901840490797546,
+    "net_lift": 0.1441717791411043,
+    "ci_lower": 0.07387839617315316,
+    "ci_upper": 0.21446516210905542,
     "is_significant": true,
     "required_n_per_arm": null,
-    "amount_at_risk_paise": 1060338000,
-    "treatment_at_risk_paise": 801355900,
-    "control_at_risk_paise": 258982100,
-    "gross_recovered_paise": 369321900,
-    "treatment_gross_recovered_paise": 337835400,
-    "control_gross_recovered_paise": 31486500,
-    "incremental_recovered_paise": 150611448.8983829,
-    "incremental_ci_lower_paise": 93470100.76235533,
-    "incremental_ci_upper_paise": 207752797.03441042,
-    "incremental_cases": 108.6326530612245,
-    "value_recovery_rate_treatment": 0.421579725063483,
-    "value_recovery_rate_control": 0.1215779005576061,
-    "value_weighted_lift": 0.3000018245058769,
-    "value_incremental_paise": 240408232.07854906,
-    "breakeven_lift": 0.0001913132479588657,
-    "intervention_cost_paise": 153310,
-    "roi": 1568.1184011385367,
+    "amount_at_risk_paise": 1107728500,
+    "treatment_at_risk_paise": 870780400,
+    "control_at_risk_paise": 236948100,
+    "gross_recovered_paise": 332531200,
+    "treatment_gross_recovered_paise": 300636000,
+    "control_gross_recovered_paise": 31895200,
+    "incremental_recovered_paise": 125541959.50920245,
+    "incremental_ci_lower_paise": 64331859.37101677,
+    "incremental_ci_upper_paise": 186752059.6473881,
+    "incremental_cases": 94.0,
+    "value_recovery_rate_treatment": 0.34524892843247273,
+    "value_recovery_rate_control": 0.13460838048500917,
+    "value_weighted_lift": 0.21064054794746356,
+    "value_incremental_paise": 183421660.5979115,
+    "breakeven_lift": 0.00021912528118455584,
+    "intervention_cost_paise": 190810,
+    "roi": 961.2790765573686,
     "roi_basis": "variable messaging cost only",
-    "cost_per_incremental_recovery_paise": 1411.2699605485627,
+    "cost_per_incremental_recovery_paise": 2029.8936170212767,
     "guardrails": {
       "gates": [
         {
           "gate": "G01",
           "name": "Consent",
-          "blocks": 34,
-          "cases_affected": 34,
-          "spend_avoided_paise": 1320,
-          "compliance_avoided_paise": 750000,
+          "blocks": 45,
+          "cases_affected": 45,
+          "spend_avoided_paise": 2240,
+          "compliance_avoided_paise": 1200000,
           "reasons": {
-            "OPTED_OUT": 11,
-            "NO_CONSENT_WHATSAPP": 3,
-            "NO_CONSENT_SMS": 16,
-            "DND_REGISTERED": 4
+            "OPTED_OUT": 15,
+            "NO_CONSENT_WHATSAPP": 7,
+            "NO_CONSENT_SMS": 14,
+            "DND_REGISTERED": 9
           }
         },
         {
           "gate": "G02",
           "name": "Quiet hours",
-          "blocks": 349,
-          "cases_affected": 332,
-          "spend_avoided_paise": 12150,
-          "compliance_avoided_paise": 17450000,
+          "blocks": 443,
+          "cases_affected": 420,
+          "spend_avoided_paise": 15740,
+          "compliance_avoided_paise": 22150000,
           "reasons": {
-            "QUIET_HOURS": 332,
-            "VOICE_HOURS": 17
+            "QUIET_HOURS": 420,
+            "VOICE_HOURS": 23
           }
         },
         {
           "gate": "G03",
           "name": "Frequency cap",
-          "blocks": 561,
-          "cases_affected": 327,
-          "spend_avoided_paise": 15810,
-          "compliance_avoided_paise": 28050000,
+          "blocks": 700,
+          "cases_affected": 405,
+          "spend_avoided_paise": 20360,
+          "compliance_avoided_paise": 35000000,
           "reasons": {
-            "FREQ_CAP_24H": 327,
-            "FREQ_CAP_7D": 234
+            "FREQ_CAP_24H": 405,
+            "FREQ_CAP_7D": 295
           }
         },
         {
           "gate": "G04",
           "name": "Attempt cap",
-          "blocks": 48,
-          "cases_affected": 48,
-          "spend_avoided_paise": 960,
+          "blocks": 33,
+          "cases_affected": 33,
+          "spend_avoided_paise": 660,
           "compliance_avoided_paise": 0,
           "reasons": {
-            "MAX_ATTEMPTS": 48
+            "MAX_ATTEMPTS": 33
           }
         },
         {
           "gate": "G05",
           "name": "Cooldown",
-          "blocks": 72,
-          "cases_affected": 72,
-          "spend_avoided_paise": 2160,
+          "blocks": 64,
+          "cases_affected": 64,
+          "spend_avoided_paise": 1920,
           "compliance_avoided_paise": 0,
           "reasons": {
-            "COOLDOWN_ACTIVE": 72
+            "COOLDOWN_ACTIVE": 64
           }
         },
         {
           "gate": "G06",
           "name": "Amount band",
-          "blocks": 9,
-          "cases_affected": 9,
-          "spend_avoided_paise": 5240,
+          "blocks": 3,
+          "cases_affected": 3,
+          "spend_avoided_paise": 90,
           "compliance_avoided_paise": 0,
           "reasons": {
-            "BELOW_VIABLE_FLOOR": 9
+            "BELOW_VIABLE_FLOOR": 3
           }
         },
         {
@@ -123,22 +123,24 @@
         {
           "gate": "G08",
           "name": "Issuer health",
-          "blocks": 97,
-          "cases_affected": 97,
+          "blocks": 80,
+          "cases_affected": 80,
           "spend_avoided_paise": 0,
           "compliance_avoided_paise": 0,
           "reasons": {
-            "ISSUER_DEGRADED": 97
+            "ISSUER_DEGRADED": 80
           }
         },
         {
           "gate": "G09",
           "name": "Duplicate payment",
-          "blocks": 0,
-          "cases_affected": 0,
-          "spend_avoided_paise": 0,
+          "blocks": 2,
+          "cases_affected": 2,
+          "spend_avoided_paise": 40,
           "compliance_avoided_paise": 0,
-          "reasons": {}
+          "reasons": {
+            "ALREADY_PAID": 2
+          }
         },
         {
           "gate": "G10",
@@ -159,102 +161,128 @@
           "reasons": {}
         }
       ],
-      "total_blocks": 1170,
-      "total_spend_avoided_paise": 37640,
-      "total_compliance_avoided_paise": 46250000
+      "total_blocks": 1370,
+      "total_spend_avoided_paise": 41050,
+      "total_compliance_avoided_paise": 58350000
     }
   },
   "per_class": [
     {
       "recovery_class": "RECEIVABLE_CHASE",
-      "treatment_n": 59,
-      "treatment_rate": 0.4915254237288136,
-      "control_n": 21,
-      "control_rate": 0.09523809523809523,
-      "net_lift": 0.39628732849071835,
-      "ci_lower": 0.2173005892278978,
-      "ci_upper": 0.5752740677535388,
+      "treatment_n": 64,
+      "treatment_rate": 0.34375,
+      "control_n": 16,
+      "control_rate": 0.0625,
+      "net_lift": 0.28125,
+      "ci_lower": 0.11508997089119927,
+      "ci_upper": 0.44741002910880073,
       "is_significant": true,
-      "spend_paise": 6370,
-      "at_risk_paise": 615680400
+      "spend_paise": 6880,
+      "at_risk_paise": 620348300
     },
     {
       "recovery_class": "RETRY_TIMED",
-      "treatment_n": 171,
-      "treatment_rate": 0.4327485380116959,
-      "control_n": 49,
-      "control_rate": 0.32653061224489793,
-      "net_lift": 0.10621792576679795,
-      "ci_lower": -0.044631617034335574,
-      "ci_upper": 0.2570674685679315,
+      "treatment_n": 163,
+      "treatment_rate": 0.44171779141104295,
+      "control_n": 40,
+      "control_rate": 0.4,
+      "net_lift": 0.041717791411042926,
+      "ci_lower": -0.12816913583993003,
+      "ci_upper": 0.21160471866201588,
       "is_significant": false,
-      "spend_paise": 3700,
-      "at_risk_paise": 156047900
+      "spend_paise": 2870,
+      "at_risk_paise": 141854400
     },
     {
       "recovery_class": "AUTO_RETRY",
-      "treatment_n": 106,
-      "treatment_rate": 0.5566037735849056,
-      "control_n": 24,
-      "control_rate": 0.041666666666666664,
-      "net_lift": 0.514937106918239,
-      "ci_lower": 0.3910992655584212,
-      "ci_upper": 0.6387749482780568,
+      "treatment_n": 98,
+      "treatment_rate": 0.5612244897959183,
+      "control_n": 19,
+      "control_rate": 0.21052631578947367,
+      "net_lift": 0.35069817400644465,
+      "ci_lower": 0.1427126939897719,
+      "ci_upper": 0.5586836540231174,
       "is_significant": true,
-      "spend_paise": 1210,
-      "at_risk_paise": 92734800
-    },
-    {
-      "recovery_class": "NUDGE_CUSTOMER",
-      "treatment_n": 99,
-      "treatment_rate": 0.24242424242424243,
-      "control_n": 21,
-      "control_rate": 0.09523809523809523,
-      "net_lift": 0.1471861471861472,
-      "ci_lower": -0.00410664342765682,
-      "ci_upper": 0.2984789377999512,
-      "is_significant": false,
-      "spend_paise": 3460,
-      "at_risk_paise": 78703900
+      "spend_paise": 1440,
+      "at_risk_paise": 84337700
     },
     {
       "recovery_class": "SWITCH_METHOD",
-      "treatment_n": 84,
-      "treatment_rate": 0.19047619047619047,
+      "treatment_n": 90,
+      "treatment_rate": 0.18888888888888888,
       "control_n": 25,
-      "control_rate": 0.12,
-      "net_lift": 0.07047619047619047,
-      "ci_lower": -0.08209762854873873,
-      "ci_upper": 0.22305000950111967,
+      "control_rate": 0.08,
+      "net_lift": 0.10888888888888888,
+      "ci_lower": -0.02471256643121171,
+      "ci_upper": 0.24249034420898946,
       "is_significant": false,
-      "spend_paise": 3570,
-      "at_risk_paise": 74074300
+      "spend_paise": 3220,
+      "at_risk_paise": 79172600
+    },
+    {
+      "recovery_class": "NUDGE_CUSTOMER",
+      "treatment_n": 86,
+      "treatment_rate": 0.2441860465116279,
+      "control_n": 30,
+      "control_rate": 0.16666666666666666,
+      "net_lift": 0.07751937984496124,
+      "ci_lower": -0.08381692318529,
+      "ci_upper": 0.23885568287521247,
+      "is_significant": false,
+      "spend_paise": 2920,
+      "at_risk_paise": 75075000
+    },
+    {
+      "recovery_class": "CHECKOUT_ABANDONED",
+      "treatment_n": 72,
+      "treatment_rate": 0.2916666666666667,
+      "control_n": 18,
+      "control_rate": 0.1111111111111111,
+      "net_lift": 0.18055555555555558,
+      "ci_lower": 0.0013856709064948014,
+      "ci_upper": 0.3597254402046164,
+      "is_significant": true,
+      "spend_paise": 1990,
+      "at_risk_paise": 45296900
     },
     {
       "recovery_class": "MANUAL_REVIEW",
-      "treatment_n": 28,
-      "treatment_rate": 0.03571428571428571,
-      "control_n": 3,
+      "treatment_n": 34,
+      "treatment_rate": 0.058823529411764705,
+      "control_n": 9,
       "control_rate": 0.0,
-      "net_lift": 0.03571428571428571,
-      "ci_lower": -0.03302434971005187,
-      "ci_upper": 0.1044529211386233,
+      "net_lift": 0.058823529411764705,
+      "ci_lower": -0.02026758279513348,
+      "ci_upper": 0.1379146416186629,
       "is_significant": false,
-      "spend_paise": 135000,
-      "at_risk_paise": 21796500
+      "spend_paise": 170000,
+      "at_risk_paise": 30134600
+    },
+    {
+      "recovery_class": "MANDATE_REPAIR",
+      "treatment_n": 37,
+      "treatment_rate": 0.21621621621621623,
+      "control_n": 6,
+      "control_rate": 0.16666666666666666,
+      "net_lift": 0.04954954954954957,
+      "ci_lower": -0.27682624032817316,
+      "ci_upper": 0.37592533942727224,
+      "is_significant": false,
+      "spend_paise": 1490,
+      "at_risk_paise": 26747400
     },
     {
       "recovery_class": "DEAD",
-      "treatment_n": 31,
+      "treatment_n": 8,
       "treatment_rate": 0.0,
-      "control_n": 4,
+      "control_n": 0,
       "control_rate": 0.0,
       "net_lift": 0.0,
       "ci_lower": 0.0,
       "ci_upper": 0.0,
       "is_significant": false,
       "spend_paise": 0,
-      "at_risk_paise": 21300200
+      "at_risk_paise": 4761600
     }
   ],
   "guardrails": {
@@ -262,72 +290,72 @@
       {
         "gate": "G01",
         "name": "Consent",
-        "blocks": 34,
-        "cases_affected": 34,
-        "spend_avoided_paise": 1320,
-        "compliance_avoided_paise": 750000,
+        "blocks": 45,
+        "cases_affected": 45,
+        "spend_avoided_paise": 2240,
+        "compliance_avoided_paise": 1200000,
         "reasons": {
-          "OPTED_OUT": 11,
-          "NO_CONSENT_WHATSAPP": 3,
-          "NO_CONSENT_SMS": 16,
-          "DND_REGISTERED": 4
+          "OPTED_OUT": 15,
+          "NO_CONSENT_WHATSAPP": 7,
+          "NO_CONSENT_SMS": 14,
+          "DND_REGISTERED": 9
         }
       },
       {
         "gate": "G02",
         "name": "Quiet hours",
-        "blocks": 349,
-        "cases_affected": 332,
-        "spend_avoided_paise": 12150,
-        "compliance_avoided_paise": 17450000,
+        "blocks": 443,
+        "cases_affected": 420,
+        "spend_avoided_paise": 15740,
+        "compliance_avoided_paise": 22150000,
         "reasons": {
-          "QUIET_HOURS": 332,
-          "VOICE_HOURS": 17
+          "QUIET_HOURS": 420,
+          "VOICE_HOURS": 23
         }
       },
       {
         "gate": "G03",
         "name": "Frequency cap",
-        "blocks": 561,
-        "cases_affected": 327,
-        "spend_avoided_paise": 15810,
-        "compliance_avoided_paise": 28050000,
+        "blocks": 700,
+        "cases_affected": 405,
+        "spend_avoided_paise": 20360,
+        "compliance_avoided_paise": 35000000,
         "reasons": {
-          "FREQ_CAP_24H": 327,
-          "FREQ_CAP_7D": 234
+          "FREQ_CAP_24H": 405,
+          "FREQ_CAP_7D": 295
         }
       },
       {
         "gate": "G04",
         "name": "Attempt cap",
-        "blocks": 48,
-        "cases_affected": 48,
-        "spend_avoided_paise": 960,
+        "blocks": 33,
+        "cases_affected": 33,
+        "spend_avoided_paise": 660,
         "compliance_avoided_paise": 0,
         "reasons": {
-          "MAX_ATTEMPTS": 48
+          "MAX_ATTEMPTS": 33
         }
       },
       {
         "gate": "G05",
         "name": "Cooldown",
-        "blocks": 72,
-        "cases_affected": 72,
-        "spend_avoided_paise": 2160,
+        "blocks": 64,
+        "cases_affected": 64,
+        "spend_avoided_paise": 1920,
         "compliance_avoided_paise": 0,
         "reasons": {
-          "COOLDOWN_ACTIVE": 72
+          "COOLDOWN_ACTIVE": 64
         }
       },
       {
         "gate": "G06",
         "name": "Amount band",
-        "blocks": 9,
-        "cases_affected": 9,
-        "spend_avoided_paise": 5240,
+        "blocks": 3,
+        "cases_affected": 3,
+        "spend_avoided_paise": 90,
         "compliance_avoided_paise": 0,
         "reasons": {
-          "BELOW_VIABLE_FLOOR": 9
+          "BELOW_VIABLE_FLOOR": 3
         }
       },
       {
@@ -342,22 +370,24 @@
       {
         "gate": "G08",
         "name": "Issuer health",
-        "blocks": 97,
-        "cases_affected": 97,
+        "blocks": 80,
+        "cases_affected": 80,
         "spend_avoided_paise": 0,
         "compliance_avoided_paise": 0,
         "reasons": {
-          "ISSUER_DEGRADED": 97
+          "ISSUER_DEGRADED": 80
         }
       },
       {
         "gate": "G09",
         "name": "Duplicate payment",
-        "blocks": 0,
-        "cases_affected": 0,
-        "spend_avoided_paise": 0,
+        "blocks": 2,
+        "cases_affected": 2,
+        "spend_avoided_paise": 40,
         "compliance_avoided_paise": 0,
-        "reasons": {}
+        "reasons": {
+          "ALREADY_PAID": 2
+        }
       },
       {
         "gate": "G10",
@@ -378,170 +408,179 @@
         "reasons": {}
       }
     ],
-    "total_blocks": 1170,
-    "total_spend_avoided_paise": 37640,
-    "total_compliance_avoided_paise": 46250000
+    "total_blocks": 1370,
+    "total_spend_avoided_paise": 41050,
+    "total_compliance_avoided_paise": 58350000
   },
   "delivery": {
     "by_tier": [
       {
         "tier": 0,
-        "sent": 277,
+        "sent": 261,
         "spend_paise": 0,
         "channels": {
-          "silent": 277
+          "silent": 261
         }
       },
       {
         "tier": 1,
-        "sent": 311,
-        "spend_paise": 9330,
+        "sent": 370,
+        "spend_paise": 11100,
         "channels": {
-          "whatsapp": 242,
-          "email": 69
+          "whatsapp": 292,
+          "email": 78
         }
       },
       {
         "tier": 2,
-        "sent": 277,
-        "spend_paise": 5950,
+        "sent": 304,
+        "spend_paise": 6530,
         "channels": {
-          "whatsapp": 41,
-          "sms": 236
+          "whatsapp": 45,
+          "sms": 259
         }
       },
       {
         "tier": 3,
-        "sent": 22,
-        "spend_paise": 3300,
+        "sent": 23,
+        "spend_paise": 3450,
         "channels": {
-          "voice": 22
+          "voice": 23
         }
       },
       {
         "tier": 4,
-        "sent": 27,
-        "spend_paise": 135000,
+        "sent": 34,
+        "spend_paise": 170000,
         "channels": {
-          "human": 27
+          "human": 34
         }
       }
     ],
     "messages_from_llm": 0,
-    "messages_from_fallback": 601,
+    "messages_from_fallback": 688,
     "fallback_reasons": {
-      "NO_API_KEY": 601
+      "NO_API_KEY": 688
     },
     "real_payment_links": 0
   },
   "exceptions": [
     {
       "reason": "Still open when the 7-day observation window closed",
-      "count": 227,
-      "amount_paise": 318686700,
+      "count": 286,
+      "amount_paise": 349490600,
       "by_class": {
-        "NUDGE_CUSTOMER": 63,
-        "RETRY_TIMED": 55,
-        "SWITCH_METHOD": 61,
+        "NUDGE_CUSTOMER": 59,
+        "RETRY_TIMED": 61,
+        "MANDATE_REPAIR": 23,
+        "SWITCH_METHOD": 65,
         "AUTO_RETRY": 27,
-        "RECEIVABLE_CHASE": 21
+        "CHECKOUT_ABANDONED": 25,
+        "RECEIVABLE_CHASE": 26
       }
     },
     {
       "reason": "Control arm - observed with no intervention",
-      "count": 119,
-      "amount_paise": 224740600,
+      "count": 132,
+      "amount_paise": 205052900,
       "by_class": {
-        "NUDGE_CUSTOMER": 19,
-        "AUTO_RETRY": 23,
-        "RETRY_TIMED": 33,
-        "SWITCH_METHOD": 22,
-        "MANUAL_REVIEW": 3,
-        "RECEIVABLE_CHASE": 19
+        "NUDGE_CUSTOMER": 25,
+        "SWITCH_METHOD": 23,
+        "RETRY_TIMED": 24,
+        "MANUAL_REVIEW": 9,
+        "MANDATE_REPAIR": 5,
+        "AUTO_RETRY": 15,
+        "CHECKOUT_ABANDONED": 16,
+        "RECEIVABLE_CHASE": 15
       }
     },
     {
       "reason": "No consent on any channel available at tier 2",
-      "count": 18,
-      "amount_paise": 38469700,
+      "count": 19,
+      "amount_paise": 66726100,
       "by_class": {
-        "RETRY_TIMED": 6,
-        "SWITCH_METHOD": 3,
-        "AUTO_RETRY": 2,
-        "NUDGE_CUSTOMER": 3,
-        "RECEIVABLE_CHASE": 4
-      }
-    },
-    {
-      "reason": "Attempt budget exhausted",
-      "count": 48,
-      "amount_paise": 34336700,
-      "by_class": {
-        "AUTO_RETRY": 13,
-        "RETRY_TIMED": 35
+        "RETRY_TIMED": 5,
+        "SWITCH_METHOD": 4,
+        "NUDGE_CUSTOMER": 2,
+        "MANDATE_REPAIR": 1,
+        "AUTO_RETRY": 1,
+        "CHECKOUT_ABANDONED": 1,
+        "RECEIVABLE_CHASE": 5
       }
     },
     {
       "reason": "Number on the national DND registry",
-      "count": 4,
-      "amount_paise": 24715400,
+      "count": 9,
+      "amount_paise": 58074000,
       "by_class": {
-        "RECEIVABLE_CHASE": 4
+        "RECEIVABLE_CHASE": 9
       }
     },
     {
       "reason": "Escalation ladder complete - no cheaper step left",
-      "count": 26,
-      "amount_paise": 19078100,
+      "count": 57,
+      "amount_paise": 34404600,
       "by_class": {
-        "MANUAL_REVIEW": 26
-      }
-    },
-    {
-      "reason": "The mandate is gone; there is nothing left to retry against",
-      "count": 27,
-      "amount_paise": 16290900,
-      "by_class": {
-        "DEAD": 27
+        "MANUAL_REVIEW": 32,
+        "CHECKOUT_ABANDONED": 25
       }
     },
     {
       "reason": "Customer revoked consent",
-      "count": 11,
-      "amount_paise": 9464800,
+      "count": 15,
+      "amount_paise": 30327100,
       "by_class": {
-        "NUDGE_CUSTOMER": 5,
+        "RETRY_TIMED": 2,
+        "NUDGE_CUSTOMER": 2,
+        "SWITCH_METHOD": 3,
+        "MANDATE_REPAIR": 3,
         "AUTO_RETRY": 3,
-        "SWITCH_METHOD": 1,
-        "RETRY_TIMED": 1,
-        "RECEIVABLE_CHASE": 1
+        "RECEIVABLE_CHASE": 2
+      }
+    },
+    {
+      "reason": "Attempt budget exhausted",
+      "count": 33,
+      "amount_paise": 24293900,
+      "by_class": {
+        "RETRY_TIMED": 22,
+        "AUTO_RETRY": 11
       }
     },
     {
       "reason": "Already settled on another attempt - chasing it would risk a double charge",
       "count": 8,
-      "amount_paise": 5009300,
+      "amount_paise": 4761600,
       "by_class": {
         "DEAD": 8
       }
     },
     {
-      "reason": "No consent on any channel available at tier 1",
-      "count": 1,
-      "amount_paise": 194900,
+      "reason": "Order was already settled on another attempt",
+      "count": 2,
+      "amount_paise": 1734200,
       "by_class": {
+        "NUDGE_CUSTOMER": 1,
+        "RETRY_TIMED": 1
+      }
+    },
+    {
+      "reason": "No consent on any channel available at tier 1",
+      "count": 2,
+      "amount_paise": 325300,
+      "by_class": {
+        "MANDATE_REPAIR": 1,
         "AUTO_RETRY": 1
       }
     },
     {
       "reason": "Amount is below the floor where recovery pays for itself",
-      "count": 9,
-      "amount_paise": 29000,
+      "count": 3,
+      "amount_paise": 7000,
       "by_class": {
-        "SWITCH_METHOD": 3,
-        "NUDGE_CUSTOMER": 4,
-        "MANUAL_REVIEW": 1,
-        "AUTO_RETRY": 1
+        "SWITCH_METHOD": 1,
+        "MANDATE_REPAIR": 1,
+        "NUDGE_CUSTOMER": 1
       }
     }
   ],
@@ -552,7 +591,7 @@
       "spike_windows": 0,
       "peak_failures_in_window": 0,
       "baseline_mean": 0.12,
-      "baseline_stdev": 0.36,
+      "baseline_stdev": 0.35,
       "degraded_until": null
     },
     {
@@ -560,8 +599,8 @@
       "degraded": true,
       "spike_windows": 4,
       "peak_failures_in_window": 14,
-      "baseline_mean": 0.23,
-      "baseline_stdev": 1.12,
+      "baseline_mean": 0.2,
+      "baseline_stdev": 1.1,
       "degraded_until": "2026-09-01T06:03:00+00:00"
     },
     {
@@ -569,8 +608,8 @@
       "degraded": false,
       "spike_windows": 0,
       "peak_failures_in_window": 0,
-      "baseline_mean": 0.14,
-      "baseline_stdev": 0.39,
+      "baseline_mean": 0.12,
+      "baseline_stdev": 0.35,
       "degraded_until": null
     },
     {
@@ -578,8 +617,8 @@
       "degraded": false,
       "spike_windows": 0,
       "peak_failures_in_window": 0,
-      "baseline_mean": 0.14,
-      "baseline_stdev": 0.37,
+      "baseline_mean": 0.13,
+      "baseline_stdev": 0.34,
       "degraded_until": null
     },
     {
@@ -587,14 +626,14 @@
       "degraded": false,
       "spike_windows": 0,
       "peak_failures_in_window": 0,
-      "baseline_mean": 0.11,
-      "baseline_stdev": 0.31,
+      "baseline_mean": 0.12,
+      "baseline_stdev": 0.32,
       "degraded_until": null
     }
   ],
   "audit": {
     "valid": true,
-    "records": 3674,
+    "records": 4185,
     "broken_at": [],
     "broken_count": 0,
     "first_break": null

@@ -16,52 +16,10 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.core import ledger
-from app.core.orchestrator import Orchestrator
+from app.core.orchestrator import Orchestrator, reset_run_state as _reset
 from app.db import SessionLocal, get_db
-from app.models import Action, Case, Event
 
 router = APIRouter(prefix="/api", tags=["batch"])
-
-
-def _reset(db: Session):
-    """
-    Rewind to the seeded state so a batch can be re-run during a demo.
-
-    Only derived rows are cleared — the dataset itself is untouched, so the
-    re-run is the same experiment, not a different one.
-    """
-    db.query(Event).delete()
-    db.query(Action).filter(Action.tick >= 0).delete()
-    for case in db.query(Case):
-        case.state = "OPEN"
-        case.recovery_class = None
-        case.rule_id = None
-        case.touches_used = 0
-        case.last_touch_at = None
-        case.resolution = None
-        case.resolved_at = None
-        case.resolved_tick = None
-        case.recovered_paise = 0
-        case.intervention_cost_paise = 0
-        case.promise_date = None
-        case.exception_reason = None
-
-    # Restore every entity to the status it was seeded with. Deriving this from
-    # the current row does not work: an order sitting at "paid" might be one of
-    # the eight planted already-settled traps, one the agent recovered, or one
-    # settled out of band mid-run, and those three want different resets. The
-    # seeded value is recorded, so use it.
-    from app.models import Invoice, Order
-    for order in db.query(Order):
-        if order.status != order.initial_status:
-            order.status = order.initial_status
-    for invoice in db.query(Invoice):
-        if invoice.status != invoice.initial_status:
-            invoice.status = invoice.initial_status
-
-    db.commit()
-    ledger.reset_head_cache()
 
 
 @router.post("/batch/run")

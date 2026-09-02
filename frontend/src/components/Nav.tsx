@@ -7,6 +7,7 @@ import type { ComponentType } from "react";
 
 import {
   ActivityIcon,
+  BanIcon,
   AlertIcon,
   BarsIcon,
   CasesIcon,
@@ -40,6 +41,7 @@ const GROUPS: { label: string; links: { href: string; label: string; icon: IconT
       { href: "/run", label: "Live Batch", icon: ActivityIcon },
       { href: "/cases", label: "Cases", icon: CasesIcon },
       { href: "/guardrails", label: "Guardrails", icon: ShieldIcon },
+      { href: "/validator", label: "LLM Guardrail", icon: BanIcon },
       { href: "/audit", label: "Audit Ledger", icon: LedgerIcon },
     ],
   },

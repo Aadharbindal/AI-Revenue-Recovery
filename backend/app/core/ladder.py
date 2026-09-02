@@ -78,6 +78,30 @@ def get_next_action(recovery_class: str, touches_used: int, amount_paise: int,
             return _intent(1, "retry did not clear: first customer contact")
         return _intent(2, "no response on WhatsApp: cheaper SMS attempt")
 
+    # The authorisation is gone, so there is nothing to retry against — a
+    # silent attempt here is guaranteed to fail and would spend one of the
+    # three attempts proving it. The only thing that can work is asking the
+    # customer to authorise a new mandate.
+    if rc == "MANDATE_REPAIR":
+        if touches_used == 0:
+            return _intent(1, "mandate revoked: re-authorisation link, no retry")
+        if touches_used == 1:
+            return _intent(2, "no re-authorisation yet: SMS with the same link")
+        return _intent(2, "final reminder before the subscription is written off")
+
+    # Nothing failed — the customer never got as far as paying. There is no
+    # error to explain and no retry to make, so the first and only lever is a
+    # reminder that their cart is still there.
+    if rc == "CHECKOUT_ABANDONED":
+        if touches_used == 0:
+            return _intent(1, "cart still held: one reminder with a direct link")
+        if touches_used == 1:
+            return _intent(2, "no return: single SMS, then stop")
+        # Deliberately shorter than the other ladders. Somebody who ignored two
+        # reminders about a cart they abandoned is not a debtor; pushing a third
+        # time buys irritation.
+        return None
+
     # The customer has to *do* something (fix a VPA, use another card, finish
     # authentication), so a silent retry cannot help. Start at Tier 1.
     if rc in ("NUDGE_CUSTOMER", "SWITCH_METHOD"):

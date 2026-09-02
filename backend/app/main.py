@@ -10,7 +10,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import audit, batch, cases, health, metrics, timeline
+from app.api import audit, batch, cases, health, llm, metrics, timeline
 from app.db import Base, engine
 
 app = FastAPI(
@@ -49,6 +49,7 @@ app.include_router(timeline.router)
 app.include_router(cases.router)
 app.include_router(batch.router)
 app.include_router(audit.router)
+app.include_router(llm.router)
 
 
 @app.on_event("startup")

@@ -44,6 +44,8 @@ gets credited to the agent.
 | `RETRY_TIMED` | 0.24 | Insufficient funds resolves itself at payday for many people, unprompted. |
 | `SWITCH_METHOD` | 0.11 | The customer has to work out for themselves that their card is the problem. Few do. |
 | `NUDGE_CUSTOMER` | 0.14 | Abandoned checkouts have a real unprompted return rate, driven by intent. |
+| `CHECKOUT_ABANDONED` | 0.17 | The highest-intent, lowest-commitment state in the dataset — a meaningful share come back unprompted inside a week. Also the lane where the agent has least to add, because nothing failed. |
+| `MANDATE_REPAIR` | 0.04 | Almost nobody re-authorises a lapsed mandate on their own: they either do not notice the subscription stopped, or they meant it to. |
 | `RECEIVABLE_CHASE` | 0.09 | B2B invoices do get paid late without chasing, but slowly. |
 | `MANUAL_REVIEW` | 0.02 | Risk-blocked payments rarely resolve without a human. |
 | `DEAD` | 0.00 | A revoked mandate or a settled order cannot recover again. |
@@ -66,6 +68,10 @@ The *additional* probability each delivered touch contributes.
 | `SWITCH_METHOD` | 2 | +0.06 | Diminishing. |
 | `NUDGE_CUSTOMER` | 1 | +0.10 | A working link removes the friction that caused the drop-off. |
 | `NUDGE_CUSTOMER` | 2 | +0.05 | Diminishing. |
+| `CHECKOUT_ABANDONED` | 1 | +0.09 | A cart reminder converts, but modestly — they already chose not to finish once and nothing has changed. |
+| `CHECKOUT_ABANDONED` | 2 | +0.03 | Diminishing fast; the ladder stops here on purpose. |
+| `MANDATE_REPAIR` | 1 | +0.19 | The largest marginal lift in the model and the one the old `DEAD` classification threw away: the customer usually does not know the mandate lapsed, so telling them is most of the work. |
+| `MANDATE_REPAIR` | 2 | +0.07 | Diminishing. |
 | `RECEIVABLE_CHASE` | 1 | +0.07 | An email reminder is easy for a busy finance team to defer. |
 | `RECEIVABLE_CHASE` | 2 | +0.06 | WhatsApp reaches a person rather than an inbox. |
 | `RECEIVABLE_CHASE` | 3 | +0.15 | A voice call is the largest lift in the receivables lane, which is why it is the only lane that earns one. |
@@ -109,6 +115,7 @@ support load. It is an upper bound on unit economics, not a business case.
 | Constant | Value | Reasoning |
 | --- | --- | --- |
 | Control arm share | 20% | Large enough for a usable interval, small enough that most of the batch is worked. |
+| Control assignment | stratified per cohort | Hashing each id independently gives 20% only in expectation. The 90 abandoned carts landed on 8 controls instead of 18, which widened that lane's interval until it said nothing. Ranking ids by hash and taking the lowest slice keeps every property that mattered — a pure function of the id, fixed before anything is known, independently recomputable — and guarantees each cohort a control group worth comparing against. |
 | Max attempts per case | 3 | Past three, more touches buy irritation rather than revenue. |
 | Frequency cap | 1 / 24h, 3 / 7d per **customer** | Per customer, not per case — two failed orders from one person is one person. |
 | Cooldown | 6 hours | Long enough for the previous message to have had a chance. |
@@ -174,3 +181,11 @@ about.
    that uncertainty.
 4. **A seven-day window may be short for B2B receivables.** Invoice payment
    cycles run longer, so the receivables lane is probably measured pessimistically.
+5. **`MANDATE_REPAIR` is not measurable at this sample size.** Stratification
+   balances the three *cohorts* — attempted orders, abandoned carts, invoices —
+   but a recovery class is only known after classification, so a class that cuts
+   across a cohort still gets whatever control cases it happens to get. Mandate
+   failures land at roughly n=37 treatment against n=6 control, and the interval
+   is over thirty points wide. The lane's logic is defensible; its lift is not
+   measured, and `EVALUATION.md` reports it as not significant rather than
+   quoting the point estimate as if it meant something.
