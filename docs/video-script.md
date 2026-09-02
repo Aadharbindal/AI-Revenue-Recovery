@@ -15,7 +15,7 @@ would have" — only what exists.
 ## 0:00–0:25 · The problem, with a number
 
 **On screen:** `/` Command Center. Let the hero figure sit for a beat, then
-scroll slowly to the divergence chart and stop there.
+scroll to the divergence chart and stop there.
 
 > "Eight hundred and fifteen cases — failed payments, abandoned carts and
 > overdue invoices. One crore eleven lakh rupees at risk.
