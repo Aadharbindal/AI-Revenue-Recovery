@@ -1,19 +1,27 @@
 """
-Render the voice scripts to audio.
+Render each placed voice call to audio.
 
-The scripts are generated, validated and placed by the batch whether or not
-this runs — a Tier-3 call is a real action with a real script behind it. What
-this adds is the ability to *hear* one, which is the difference between
-claiming a voice lane and demonstrating it.
+A Tier-3 action is a real call with a real script behind it, generated and
+validated by the batch whether or not this runs. What this adds is the ability
+to hear one.
 
-Needs SARVAM_API_KEY. Without it the script says so and exits cleanly; the
-dashboard then shows the script text with a note that no audio was rendered,
-rather than a broken player.
+**One clip per case.** An earlier version rendered a single specimen with
+invented values and played it on every voice case, so the page read "Namaste
+Sanya Bose ji ... one lakh thirty one thousand rupees" while the speaker said
+"Meera Iyer ... one lakh forty one thousand". A note explaining the discrepancy
+was not a fix; the audio has to be the case's own call.
+
+Needs SARVAM_API_KEY. Without it nothing is rendered, the manifest records
+that, and the dashboard shows each script with a line saying no recording
+exists — rather than a player that misrepresents what it is playing.
 
     python backend/scripts/render_voice.py
+    python backend/scripts/render_voice.py --limit 5
+    python backend/scripts/render_voice.py --speaker neha
 """
 
 import argparse
+import base64
 import json
 import os
 import sys
@@ -22,139 +30,127 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import requests                                              # noqa: E402
 
-from app.llm.client import render                            # noqa: E402
-from app.llm.fallback import get_fallback_template           # noqa: E402
-from app.llm.validator import validate                       # noqa: E402
+from app.db import SessionLocal                              # noqa: E402
+from app.llm.speech import to_speech                         # noqa: E402
+from app.models import Action, Customer                      # noqa: E402
 
 SARVAM_URL = "https://api.sarvam.ai/text-to-speech"
 
-# Sarvam retires TTS models the same way LLM providers retire chat models —
-# bulbul:v2 went away and the call started 400ing. Set SARVAM_MODEL to pin one.
+# Providers retire TTS models the way they retire chat models — bulbul:v2 went
+# away mid-build and every call started 400ing. Both are overridable.
 SARVAM_MODEL = os.environ.get("SARVAM_MODEL", "bulbul:v3")
+SPEAKER = os.environ.get("SARVAM_SPEAKER", "priya")
+
+# Hindi and Hinglish scripts are both romanised, and a Hindi voice reads them
+# the way a caller would actually hear them.
+LANGUAGE_CODE = {"en": "en-IN", "hi": "hi-IN", "hinglish": "hi-IN"}
 
 REPO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
 OUT_DIR = os.path.join(REPO_ROOT, "frontend", "public", "voice")
 
-# English first: it is the clip the demo plays, so it leads the list and is the
-# one the case timeline points at.
-#
-# The Hinglish clip stays because the lane genuinely supports it and the brief
-# names it — the validator enforces the same rules on both, including the
-# automated-call disclosure and the opt-out. Dropping it would narrow what the
-# system can do to match what one recording happens to use.
-#
-# The values substituted here are the ones a real send uses: read from the
-# database, never authored by a model. Amounts are spelled as words because the
-# validator rejects a script containing a digit.
-CLIPS = [
-    {
-        "id": "receivable_english",
-        "language": "en",
-        "speaker": "priya",
-        "target_language_code": "en-IN",
-        "values": {
-            "name": "Meera Iyer",
-            "merchant": "Demo Merchant",
-            "invoice_id": "inv oh seven eight",
-            "amount": "one lakh forty one thousand nine hundred twenty two rupees",
-            "days": "nine",
+
+def voice_calls(db):
+    """Every voice message this run actually placed, with its language."""
+    language = {c.customer_id: c.language_pref for c in db.query(Customer)}
+    calls = [
+        a for a in db.query(Action)
+        if a.channel == "voice" and a.status == "SENT"
+        and a.message_body and (a.tick or 0) >= 0
+    ]
+    calls.sort(key=lambda a: a.case_id)
+    return [
+        {
+            "case_id": a.case_id,
+            "language": language.get(a.customer_id, "en"),
+            "written": a.message_body,
+            "spoken": to_speech(a.message_body),
+        }
+        for a in calls
+    ]
+
+
+def synthesise(key: str, clip: dict, speaker: str, path: str) -> bool:
+    response = requests.post(
+        SARVAM_URL,
+        headers={"api-subscription-key": key},
+        json={
+            "inputs": [clip["spoken"]],
+            "target_language_code": LANGUAGE_CODE.get(clip["language"], "en-IN"),
+            "speaker": speaker,
+            "model": SARVAM_MODEL,
         },
-    },
-    {
-        "id": "receivable_hinglish",
-        "language": "hinglish",
-        "speaker": "priya",
-        "target_language_code": "hi-IN",
-        "values": {
-            "name": "Meera Iyer",
-            "merchant": "Demo Merchant",
-            "invoice_id": "inv oh seven eight",
-            "amount": "one lakh forty one thousand nine hundred twenty two rupees",
-            "days": "nine",
-        },
-    },
-]
+        timeout=60,
+    )
+    if response.status_code >= 400:
+        print(f"  {clip['case_id']}  {response.status_code}: "
+              f"{response.text[:130]}")
+        return False
+
+    with open(path, "wb") as fh:
+        fh.write(base64.b64decode(response.json()["audios"][0]))
+    return True
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=OUT_DIR)
+    parser.add_argument("--speaker", default=SPEAKER)
+    parser.add_argument("--limit", type=int, default=None,
+                        help="render only the first N calls")
     args = parser.parse_args()
 
-    key = os.environ.get("SARVAM_API_KEY")
-    manifest = []
+    db = SessionLocal()
+    try:
+        clips = voice_calls(db)
+    finally:
+        db.close()
 
-    for clip in CLIPS:
-        template = get_fallback_template("RECEIVABLE_CHASE", "voice", clip["language"])
+    if not clips:
+        print("No voice calls in this batch. Run the batch first.")
+        return 1
 
-        # The same validator gate a model-written script would face: automated
-        # -call disclosure, an opt-out, no coercive language, under 400 chars.
-        check = validate(
-            json.dumps({
-                "channel": "voice",
-                "language": clip["language"],
-                "body": template,
-                "amount_token": "{{amount}}",
-                "link_token": "{{payment_link}}",
-            }),
-            {"language": clip["language"], "channel": "voice"},
-        )
-        if not check.ok:
-            print(f"  {clip['id']}: script FAILED validation ({check.reason})")
-            return 2
+    if args.limit:
+        clips = clips[:args.limit]
 
-        spoken = render(template, clip["values"])
-        manifest.append({
-            "id": clip["id"],
-            "language": clip["language"],
-            "script": spoken,
-            "audio": f"/voice/{clip['id']}.wav" if key else None,
-            "validated": True,
-        })
-        print(f"  {clip['id']}: script validated ({len(spoken)} chars)")
+    print(f"{len(clips)} voice calls to render "
+          f"({', '.join(sorted({c['language'] for c in clips}))}).")
+    print()
 
     os.makedirs(args.out, exist_ok=True)
+    key = os.environ.get("SARVAM_API_KEY")
+    manifest = {}
 
+    for clip in clips:
+        entry = {
+            "language": clip["language"],
+            "written": clip["written"],
+            "spoken": clip["spoken"],
+            "audio": None,
+        }
+        if key:
+            path = os.path.join(args.out, f"{clip['case_id']}.wav")
+            if synthesise(key, clip, args.speaker, path):
+                entry["audio"] = f"/voice/{clip['case_id']}.wav"
+                size = os.path.getsize(path) // 1024
+                print(f"  {clip['case_id']}  {clip['language']:9} {size:>5} KB")
+        manifest[clip["case_id"]] = entry
+
+    with open(os.path.join(args.out, "manifest.json"), "w",
+              encoding="utf-8", newline="\n") as fh:
+        json.dump({"speaker": args.speaker, "model": SARVAM_MODEL,
+                   "clips": manifest}, fh, indent=2)
+
+    rendered = sum(1 for e in manifest.values() if e["audio"])
+    print()
     if not key:
-        print()
-        print("SARVAM_API_KEY is not set, so no audio was rendered.")
-        print("The scripts above are still generated, validated and placed by")
-        print("the batch; the dashboard will show the text and say that no")
-        print("audio exists rather than showing a broken player.")
+        print("SARVAM_API_KEY is not set, so no audio was rendered. Every script")
+        print("is still generated and validated by the batch; the dashboard shows")
+        print("the text and says no recording exists, rather than playing one")
+        print("that belongs to a different case.")
     else:
-        for clip, entry in zip(CLIPS, manifest):
-            response = requests.post(
-                SARVAM_URL,
-                headers={"api-subscription-key": key},
-                json={
-                    "inputs": [entry["script"]],
-                    # Sarvam has no "hinglish" code; a Hindi voice reads
-                    # Latin-script Hinglish correctly, which is how people
-                    # actually hear it.
-                    "target_language_code": clip["target_language_code"],
-                    "speaker": clip["speaker"],
-                    "model": SARVAM_MODEL,
-                },
-                timeout=60,
-            )
-            if response.status_code >= 400:
-                print(f"  {clip['id']}: Sarvam returned "
-                      f"{response.status_code}: {response.text[:200]}")
-                entry["audio"] = None
-                continue
-
-            import base64
-            audio = base64.b64decode(response.json()["audios"][0])
-            path = os.path.join(args.out, f"{clip['id']}.wav")
-            with open(path, "wb") as fh:
-                fh.write(audio)
-            print(f"  {clip['id']}: wrote {path} ({len(audio) // 1024} KB)")
-
-    with open(os.path.join(args.out, "manifest.json"), "w", encoding="utf-8") as fh:
-        json.dump({"clips": manifest}, fh, indent=2)
-    print(f"\nWrote {os.path.join(args.out, 'manifest.json')}")
+        print(f"Rendered {rendered} of {len(clips)}.")
     return 0
 
 

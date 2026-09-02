@@ -66,7 +66,7 @@ from deterministic templates and payment links are simulated and flagged as
 such. **You do not need our credentials to reproduce our numbers.**
 
 ```bash
-make test      # 157 tests
+make test      # 182 tests
 make verify    # recompute the audit chain from genesis
 make api       # backend on :8000
 make web       # dashboard on :3000
@@ -248,13 +248,13 @@ backend/
       policy.py            the eleven gates
       orchestrator.py      the tick loop
       ledger.py            hash-chained audit trail
-    llm/                   prompts, validator, deterministic fallbacks
+    llm/                   prompts, validator, fallbacks, written-to-spoken
     sim/                   dataset generator, outcome oracle (the agent cannot read it)
     analytics/             experiment statistics, report rendering
     api/                   FastAPI routers
     models.py  db.py       schema and session
   scripts/                 seed, run-batch, report, verify-ledger, render-voice
-  tests/                   158 tests
+  tests/                   182 tests
   demo.db                  committed and pre-seeded, so a clone shows these numbers
 
 frontend/src/

@@ -300,7 +300,11 @@ function ActionBlock({
         generated, validated and placed by the batch either way.
       */}
       {action.channel === "voice" && action.message_body && (
-        <VoiceScript body={action.message_body} language={language} />
+        <VoiceScript
+          body={action.message_body}
+          language={language}
+          caseId={action.case_id}
+        />
       )}
 
       {action.channel !== "voice" && action.message_body && (
@@ -358,18 +362,22 @@ function ActionBlock({
   );
 }
 
-// Hindi and Hinglish scripts are both romanised and read by the same Hindi
-// voice, so they share a clip. Playing the English recording under a Hinglish
-// script would have the page say one thing and the speaker say another.
-const VOICE_CLIP: Record<string, string> = {
-  en: "/voice/receivable_english.wav",
-  hi: "/voice/receivable_hinglish.wav",
-  hinglish: "/voice/receivable_hinglish.wav",
-};
-
-function VoiceScript({ body, language }: { body: string; language: string }) {
+function VoiceScript({
+  body,
+  language,
+  caseId,
+}: {
+  body: string;
+  language: string;
+  caseId: string;
+}) {
   const [audioOk, setAudioOk] = useState(true);
-  const src = VOICE_CLIP[language] ?? VOICE_CLIP.en;
+
+  // This case's own call, not a specimen. `make voice` renders one clip per
+  // placed call from that call's real values, so what is written above and
+  // what the speaker says are the same sentence. Sharing one recording across
+  // every voice case had the page read one name and the audio say another.
+  const src = `/voice/${caseId}.wav`;
 
   return (
     <div className="mt-3 rounded-lg border border-[var(--line)] bg-[var(--surface-inset)] p-4">
@@ -396,9 +404,11 @@ function VoiceScript({ body, language }: { body: string; language: string }) {
         <AudioPlayer src={src} onError={() => setAudioOk(false)} />
       ) : (
         <p className="text-[12px] text-[var(--ink-4)] mt-3.5 leading-relaxed">
-          No audio rendered — <span className="font-mono">SARVAM_API_KEY</span>{" "}
-          is not configured. The script above is still generated, validated and
-          placed by the batch; only the text-to-speech step is missing.
+          No recording for this call — run{" "}
+          <span className="font-mono">make voice</span> with{" "}
+          <span className="font-mono">SARVAM_API_KEY</span> set. The script above
+          is still generated, validated and placed by the batch; only the
+          text-to-speech step is missing. Nothing else is played in its place.
         </p>
       )}
 
@@ -412,9 +422,10 @@ function VoiceScript({ body, language }: { body: string; language: string }) {
         <br />
         The figures above were substituted by Python from this case; the
         template contained no digits at all, because a draft containing one is
-        rejected. The recording is of this template with the same values spelled
-        as words, which is what a caller would hear — it is one rendering of the
-        script, not a recording of this particular call.
+        rejected. The recording is this same script with those same figures
+        spelled as words — &ldquo;one lakh thirty one thousand rupees&rdquo;
+        rather than a reader working through the punctuation of
+        &ldquo;1,31,000.00&rdquo;.
       </Callout>
     </div>
   );
