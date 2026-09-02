@@ -13,18 +13,26 @@ export function Page({
   title,
   kicker,
   crumbs,
+  rail,
   subtitle,
   children,
   actions,
 }: {
   title: string;
   kicker?: string;
-  /** Breadcrumb chips above the title. Renders a left accent rail with it. */
+  /** Breadcrumb chips above the title. */
   crumbs?: Crumb[];
+  /**
+   * The accent rail beside the title block. Independent of `crumbs` — the
+   * landing page wants the rail without the chips, and coupling them meant
+   * dropping one silently took the other with it.
+   */
+  rail?: boolean;
   subtitle?: string;
   children: ReactNode;
   actions?: ReactNode;
 }) {
+  const showRail = rail ?? Boolean(crumbs);
   return (
     <div className="px-8 py-8 lg:px-10 max-w-[1400px]">
       <header className="mb-7 flex items-start justify-between gap-8">
@@ -36,8 +44,8 @@ export function Page({
             </div>
           )}
 
-          <div className={crumbs ? "relative pl-5" : undefined}>
-            {crumbs && (
+          <div className={showRail ? "relative pl-5" : undefined}>
+            {showRail && (
               <>
                 <span
                   className="absolute left-0 top-[7px] w-[5px] h-[5px] rounded-full"
