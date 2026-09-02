@@ -224,6 +224,57 @@ def test_tampering_is_detected_named_and_reversible(client):
     assert client.get("/api/audit/verify").json()["valid"]
 
 
+def test_the_restore_endpoint_closes_the_loop(client):
+    """
+    Tamper is a one-way door without this.
+
+    On the dashboard the ledger would read BROKEN on every visit from then on,
+    and the committed database would have to be restored from git — so the
+    demonstration could be given exactly once.
+    """
+    assert client.get("/api/audit/verify").json()["valid"]
+
+    tampered = client.post("/api/audit/tamper").json()
+    assert not client.get("/api/audit/verify").json()["valid"]
+
+    restored = client.post("/api/audit/restore").json()
+    assert restored["status"] == "restored"
+    assert tampered["event_id"] in restored["restored"]
+    # Restoring the bytes restores the hash: detection is derived from content,
+    # not from a flag saying the row was edited.
+    assert restored["chain"]["valid"]
+    assert client.get("/api/audit/verify").json()["valid"]
+
+
+def test_restoring_a_clean_ledger_is_not_an_error(client):
+    """The button can be clicked twice; the second click is a no-op."""
+    assert client.get("/api/audit/verify").json()["valid"]
+
+    result = client.post("/api/audit/restore").json()
+    assert result["status"] == "nothing_to_restore"
+    assert result["restored"] == []
+    assert result["chain"]["valid"]
+
+
+def test_tampering_twice_still_restores(client):
+    """
+    The second tamper must not record the already-tampered payload as the
+    original, or restore would put the tampered value back and call it clean.
+    """
+    original = client.post("/api/audit/tamper").json()["before"]
+    client.post("/api/audit/tamper")
+
+    assert client.post("/api/audit/restore").json()["chain"]["valid"]
+
+    from app.models import Event
+    db = SessionLocal()
+    try:
+        row = db.query(Event).filter(Event.action == "OUTCOME").first()
+        assert row.payload_json == original
+    finally:
+        db.close()
+
+
 # ------------------------------------------------------------------ metrics
 
 def test_health_reports_which_integrations_are_configured(client):

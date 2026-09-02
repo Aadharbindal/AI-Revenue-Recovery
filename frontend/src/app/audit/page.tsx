@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { tamperLedger, verifyLedger, type AuditStatus } from "@/lib/api";
+import {
+  restoreLedger, tamperLedger, verifyLedger, type AuditStatus,
+} from "@/lib/api";
 import {
   Callout, Card, Failed, Loading, Page, Pill, Stat,
 } from "@/components/ui";
@@ -13,6 +15,12 @@ import { LedgerIcon, ShieldIcon } from "@/components/icons";
  *
  * Verify (valid) → rewrite one historical amount → verify again (invalid, and
  * it names the row). An audit trail nobody has seen fail is just a log table.
+ *
+ * Restoring is part of the demonstration, not a cleanup afterthought: putting
+ * the original bytes back makes the chain verify again, which is what shows
+ * the detection comes from the content rather than from an "edited" flag. It
+ * also keeps the page from being a one-way door — without it the ledger reads
+ * BROKEN on every visit from then on.
  */
 export default function Audit() {
   const [status, setStatus] = useState<AuditStatus | null>(null);
@@ -42,6 +50,19 @@ export default function Audit() {
     }
   }
 
+  async function restore() {
+    setBusy(true);
+    try {
+      const result = await restoreLedger();
+      setStatus(result.chain);
+      setTampered(null);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (error) return <Failed error={error} />;
   if (!status) return <Loading what="ledger" />;
 
@@ -51,13 +72,25 @@ export default function Audit() {
       title="Audit Ledger"
       subtitle="Every decision the system made, hash-chained. Each row's hash covers the previous row's hash plus its own content."
       actions={
-        <button
-          onClick={tamper}
-          disabled={busy}
-          className="px-4 py-2 rounded bg-[var(--critical)] hover:bg-[var(--critical)] disabled:bg-[var(--surface-raised)] disabled:text-[var(--ink-3)] text-white text-sm font-medium transition"
-        >
-          {busy ? "Rewriting…" : "Tamper with a record"}
-        </button>
+        // Restore appears only once the chain is actually broken, so the
+        // page offers one obvious next step at a time.
+        status.valid ? (
+          <button
+            onClick={tamper}
+            disabled={busy}
+            className="px-4 py-2 rounded bg-[var(--critical)] hover:bg-[var(--critical)] disabled:bg-[var(--surface-raised)] disabled:text-[var(--ink-3)] text-white text-sm font-medium transition"
+          >
+            {busy ? "Rewriting…" : "Tamper with a record"}
+          </button>
+        ) : (
+          <button
+            onClick={restore}
+            disabled={busy}
+            className="px-4 py-2 rounded border border-[var(--line-strong)] bg-[var(--surface-raised)] hover:bg-[var(--surface)] disabled:text-[var(--ink-3)] text-[var(--ink)] text-sm font-medium transition"
+          >
+            {busy ? "Restoring…" : "Restore the record"}
+          </button>
+        )
       }
     >
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

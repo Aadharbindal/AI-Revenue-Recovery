@@ -357,6 +357,10 @@ export async function validateDraft(draft: {
 export const verifyLedger = () => get<AuditStatus>("/audit/verify");
 export const tamperLedger = () =>
   post<{ event_id: number; before: unknown; after: unknown }>("/audit/tamper");
+export const restoreLedger = () =>
+  post<{ status: string; restored: number[]; chain: AuditStatus }>(
+    "/audit/restore",
+  );
 export const runBatch = () => post<Record<string, unknown>>("/batch/run");
 
 /* -------------------------------------------------------------- SSE feed */
