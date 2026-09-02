@@ -17,6 +17,7 @@ import {
   ShieldIcon,
   TerminalIcon,
 } from "@/components/icons";
+import Logo from "@/components/Logo";
 import { fetchHealth, type HealthStatus } from "@/lib/api";
 
 type IconType = ComponentType<{ className?: string; size?: number }>;
@@ -72,9 +73,12 @@ export default function Nav() {
       <div className="h-full flex flex-col overflow-hidden">
         <div className="px-4 pt-5 pb-4">
           <Link href="/" className="block">
-            <h1 className="text-[18px] font-bold tracking-tight text-[var(--ink)] leading-none">
-              Recover<span style={{ color: "var(--treatment)" }}>OS</span>
-            </h1>
+            <div className="flex items-center gap-2.5">
+              <Logo size={24} />
+              <h1 className="text-[18px] font-bold tracking-tight text-[var(--ink)] leading-none">
+                Recover<span style={{ color: "var(--treatment)" }}>OS</span>
+              </h1>
+            </div>
             <p className="mt-2.5 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--ink-4)] leading-[1.7]">
               The LLM never
               <br />
