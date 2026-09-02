@@ -6,6 +6,7 @@ import { fetchCases, type CaseRow } from "@/lib/api";
 import { CLASS_COLORS, STATE_COLORS, rupees } from "@/lib/format";
 import { CaseLink, Card, Failed, Loading, Page, Pill } from "@/components/ui";
 import { CasesIcon } from "@/components/icons";
+import Select from "@/components/Select";
 
 const STATES = ["", "RECOVERED", "EXHAUSTED", "CLOSED"];
 const CLASSES = [
@@ -21,6 +22,9 @@ const GATES = [
   "", "G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09", "G10",
   "G11",
 ];
+
+/** Blank means "no filter", which reads better as "all" than as an empty row. */
+const toOption = (value: string) => ({ value, label: value || "all" });
 
 export default function Cases() {
   const [rows, setRows] = useState<CaseRow[]>([]);
@@ -51,25 +55,25 @@ export default function Cases() {
       <div className="flex flex-wrap gap-3 mb-6">
         <Select
           label="State"
-          options={STATES}
+          options={STATES.map(toOption)}
           value={filters.state}
           onChange={(v) => setFilters((f) => ({ ...f, state: v }))}
         />
         <Select
           label="Class"
-          options={CLASSES}
+          options={CLASSES.map(toOption)}
           value={filters.recovery_class}
           onChange={(v) => setFilters((f) => ({ ...f, recovery_class: v }))}
         />
         <Select
           label="Arm"
-          options={["", "treatment", "control"]}
+          options={["", "treatment", "control"].map(toOption)}
           value={filters.arm}
           onChange={(v) => setFilters((f) => ({ ...f, arm: v }))}
         />
         <Select
           label="Blocked by gate"
-          options={GATES}
+          options={GATES.map(toOption)}
           value={filters.blocked_by}
           onChange={(v) => setFilters((f) => ({ ...f, blocked_by: v }))}
         />
@@ -139,33 +143,3 @@ export default function Cases() {
   );
 }
 
-function Select({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: string[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <label className="text-xs">
-      <span className="block text-[11px] uppercase tracking-wider text-[var(--ink-3)] mb-1">
-        {label}
-      </span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="bg-[var(--surface)] border border-[var(--line)] rounded px-3 py-1.5 text-sm text-[var(--ink)] font-mono focus:outline-none focus:border-[var(--treatment)]"
-      >
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o || "all"}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
