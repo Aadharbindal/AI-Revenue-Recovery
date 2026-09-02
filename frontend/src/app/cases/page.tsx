@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { fetchCases, type CaseRow } from "@/lib/api";
-import { CLASS_COLORS, STATE_COLORS, rupees } from "@/lib/format";
+import { classPill, STATE_COLORS, rupees } from "@/lib/format";
 import { CaseLink, Card, Failed, Loading, Page, Pill } from "@/components/ui";
 import { CasesIcon } from "@/components/icons";
 import Select from "@/components/Select";
@@ -110,7 +110,7 @@ export default function Cases() {
                       <CaseLink id={c.case_id} />
                     </td>
                     <td className="py-2 pr-4">
-                      <Pill className={CLASS_COLORS[c.recovery_class ?? "DEAD"]}>
+                      <Pill className={classPill(c.recovery_class)}>
                         {c.recovery_class}
                       </Pill>
                     </td>

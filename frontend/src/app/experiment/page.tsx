@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { fetchExperiment, type ClassRow, type ExperimentResult } from "@/lib/api";
-import { CLASS_COLORS, pct, pp, rupees, rupeesShort } from "@/lib/format";
+import { classPill, pct, pp, rupees, rupeesShort } from "@/lib/format";
 import {
   Bar, Callout, Card, Failed, Loading, Page, Pill, Stat,
 } from "@/components/ui";
@@ -181,7 +181,7 @@ export default function Experiment() {
                   className="border-b border-[var(--line)] last:border-0"
                 >
                   <td className="py-2.5 pr-4">
-                    <Pill className={CLASS_COLORS[row.recovery_class]}>
+                    <Pill className={classPill(row.recovery_class)}>
                       {row.recovery_class}
                     </Pill>
                   </td>

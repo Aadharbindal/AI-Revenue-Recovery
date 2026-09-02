@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { fetchCase, type ActionRow, type CaseDetail, type EventRow } from "@/lib/api";
 import {
   CHANNEL_LABELS,
-  CLASS_COLORS,
+  classPill,
   STATE_COLORS,
   istTime,
   rupees,
@@ -46,7 +46,7 @@ export default function CaseTimeline() {
       actions={
         <div className="flex gap-2">
           <Pill className={STATE_COLORS[c.state]}>{c.state}</Pill>
-          <Pill className={CLASS_COLORS[c.recovery_class ?? "DEAD"]}>
+          <Pill className={classPill(c.recovery_class)}>
             {c.recovery_class}
           </Pill>
           <Pill

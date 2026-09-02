@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { fetchExceptions, type ExceptionRow } from "@/lib/api";
-import { CLASS_COLORS, rupees, rupeesShort } from "@/lib/format";
+import { classPill, rupees, rupeesShort } from "@/lib/format";
 import {
   Bar, Callout, Card, Failed, Loading, Page, Pill, Stat,
 } from "@/components/ui";
@@ -81,7 +81,7 @@ export default function Exceptions() {
                 {Object.entries(row.by_class)
                   .sort((a, b) => b[1] - a[1])
                   .map(([cls, n]) => (
-                    <Pill key={cls} className={CLASS_COLORS[cls]}>
+                    <Pill key={cls} className={classPill(cls)}>
                       {cls} ×{n}
                     </Pill>
                   ))}
