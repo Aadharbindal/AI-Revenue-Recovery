@@ -5,7 +5,9 @@ import os
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.analytics.report import GATE_NAMES
 from app.core import clock
+from app.core.classifier import RecoveryClass
 from app.db import get_db
 from app.models import Action, Case, Event
 
@@ -29,6 +31,15 @@ def health(db: Session = Depends(get_db)):
             "batch_end": clock.iso(clock.BATCH_END),
             "ticks": clock.TICK_COUNT,
             "tick_hours": clock.TICK_HOURS,
+        },
+        # The two enumerations the dashboard filters on. They are served rather
+        # than duplicated in the frontend because a hardcoded copy is a copy
+        # that goes stale: two recovery classes were added mid-build and the
+        # filter kept offering the old nine, so the new ones were unreachable
+        # from the UI while being perfectly present in the data.
+        "catalog": {
+            "recovery_classes": [c.value for c in RecoveryClass],
+            "gates": sorted(GATE_NAMES),
         },
         "data": {
             "cases": db.query(Case).count(),

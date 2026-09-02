@@ -18,14 +18,17 @@ ours, not the provider's.
 
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
+from app.db import get_db
 from app.llm.client import call_count, render
 from app.llm.fallback import get_fallback_template
 from app.llm.validator import (
     BANNED_PHRASES, CHANNEL_LENGTH_CAPS, validate,
 )
+from app.models import Action, Case, Customer, Invoice
 
 router = APIRouter(prefix="/api", tags=["llm"])
 
@@ -167,8 +170,55 @@ def samples():
     }
 
 
+def substitution_values(db: Session):
+    """
+    The values a real send would substitute, read from a real case.
+
+    These were hardcoded once — a customer name, an amount and a payment link
+    that belonged to no case in the batch — under a comment claiming they came
+    from the database. So the playground rendered a message that could not
+    have been sent, which is precisely the confusion this endpoint exists to
+    dispel: the whole point is that the figures come from the database and not
+    from a model.
+
+    The case is the first one the batch actually sent a message to, ordered by
+    id, so the rendered preview is a message a viewer can go and find on the
+    case page. Returns None when the batch has not been run.
+    """
+    action = (
+        db.query(Action)
+        .filter(Action.status == "SENT", Action.message_body.isnot(None))
+        .order_by(Action.case_id)
+        .first()
+    )
+    if action is None:
+        return None, None
+
+    case = db.query(Case).filter(Case.case_id == action.case_id).first()
+    customer = db.query(Customer).filter(
+        Customer.customer_id == action.customer_id
+    ).first()
+    if case is None or customer is None:
+        return None, None
+
+    invoice = db.query(Invoice).filter(
+        Invoice.invoice_id == case.entity_id
+    ).first()
+
+    # Rendered exactly as the orchestrator renders them, so the preview and the
+    # real send cannot drift apart.
+    return case.case_id, {
+        "name": customer.name,
+        "amount": f"Rs {case.amount_at_risk_paise / 100:,.2f}",
+        "payment_link": action.payment_link_url or "",
+        "merchant": "Demo Merchant",
+        "invoice_id": case.entity_id,
+        "days": str(getattr(invoice, "days_overdue", "") or ""),
+    }
+
+
 @router.post("/llm/validate")
-def validate_draft(draft: DraftIn):
+def validate_draft(draft: DraftIn, db: Session = Depends(get_db)):
     """
     Run one draft through the real validator and report every check.
 
@@ -179,26 +229,23 @@ def validate_draft(draft: DraftIn):
     raw = _draft(draft.channel, draft.language, draft.body)
     result = validate(raw, {"language": draft.language, "channel": draft.channel})
 
-    # Values a real send would substitute. Every one of them is read from the
-    # database; none passed through a model.
-    values = {
-        "name": "Meera Iyer",
-        "amount": "Rs 1,41,922.00",
-        "payment_link": "https://rzp.io/simulated/case_0721",
-        "merchant": "Demo Merchant",
-        "invoice_id": "inv_078",
-        "days": "9",
-    }
+    case_id, values = substitution_values(db)
 
     fallback = get_fallback_template(
         draft.recovery_class, draft.channel, draft.language
     )
+    template = draft.body if result.ok else fallback
 
     return {
         "ok": result.ok,
         "reason": result.reason,
         "checks": result.checks,
-        "would_send": render(draft.body if result.ok else fallback, values),
+        # With no batch in the database there are no real values to substitute,
+        # and inventing some is what got this wrong the first time. Show the
+        # template with its tokens intact and say where the values would come
+        # from.
+        "would_send": render(template, values) if values else template,
+        "values_from_case": case_id,
         "used": "llm_template" if result.ok else "deterministic_fallback",
         "fallback_template": fallback,
     }

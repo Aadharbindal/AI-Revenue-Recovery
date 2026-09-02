@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { streamBatch, type BatchEvent } from "@/lib/api";
+import { fetchHealth, streamBatch, type BatchEvent } from "@/lib/api";
 import { CHANNEL_LABELS, istTime, rupeesShort } from "@/lib/format";
 import { Bar, Callout, Card, Page, Pill, Stat } from "@/components/ui";
 import {
@@ -48,8 +48,20 @@ export default function LiveBatch() {
   const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // The horizon is the clock's, not ours. Hardcoding 84 here meant the
+  // progress bar silently lied the moment the simulation's length changed.
+  const [tickCount, setTickCount] = useState<number | null>(null);
+
   const sourceRef = useRef<EventSource | null>(null);
   const seq = useRef(0);
+
+  useEffect(() => {
+    fetchHealth()
+      .then((h) => setTickCount(h.simulation.ticks))
+      .catch(() => {
+        /* the batch still streams; only the progress bar needs this */
+      });
+  }, []);
 
   // An SSE connection left open after unmount keeps a batch running against a
   // browser that stopped listening.
@@ -128,7 +140,10 @@ export default function LiveBatch() {
     sourceRef.current = streamBatch(handle);
   }
 
-  const progress = counters.tick >= 0 ? ((counters.tick + 1) / 84) * 100 : 0;
+  const progress =
+    counters.tick >= 0 && tickCount
+      ? ((counters.tick + 1) / tickCount) * 100
+      : 0;
   const quiet = counters.istHour >= 21 || counters.istHour < 9;
 
   return (

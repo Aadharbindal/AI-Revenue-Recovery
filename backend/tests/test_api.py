@@ -153,9 +153,14 @@ def test_a_rejected_draft_still_produces_a_sendable_message(client):
     assert result["used"] == "deterministic_fallback"
     assert result["would_send"]
     assert "{{" not in result["would_send"]
-    # And the number in it is the database's, not the model's guess of 1,499.
-    assert "1,41,922.00" in result["would_send"]
     assert "1,499" not in result["would_send"]
+
+    # And the number in it is the database's, not the model's guess of 1,499.
+    # Asserted against the case the endpoint says it read, because the amount
+    # used to be a constant in the endpoint that matched no case at all.
+    case = client.get(f"/api/cases/{result['values_from_case']}").json()["case"]
+    expected = f"{case['amount_at_risk_paise'] / 100:,.2f}"
+    assert expected in result["would_send"]
 
 
 def test_an_accepted_draft_renders_the_model_template(client):

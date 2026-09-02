@@ -61,7 +61,7 @@ export default function Guardrails() {
           value={g.total_blocks.toLocaleString("en-IN")}
           tone="warn"
           icon={<ShieldAlertIcon size={17} />}
-          sub={`Fired by ${g.gates.filter((x) => x.blocks > 0).length} of the 11 gates`}
+          sub={`Fired by ${g.gates.filter((x) => x.blocks > 0).length} of the ${g.gates.length} gates`}
         />
         <Stat
           label="Spend avoided"

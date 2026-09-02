@@ -2,26 +2,22 @@
 
 import { useEffect, useState } from "react";
 
-import { fetchCases, type CaseRow } from "@/lib/api";
+import { fetchCases, fetchHealth, type CaseRow } from "@/lib/api";
 import { classPill, STATE_COLORS, rupees } from "@/lib/format";
 import { CaseLink, Card, Failed, Loading, Page, Pill } from "@/components/ui";
 import { CasesIcon } from "@/components/icons";
 import Select from "@/components/Select";
 
 const STATES = ["", "RECOVERED", "EXHAUSTED", "CLOSED"];
-const CLASSES = [
-  "", "AUTO_RETRY", "RETRY_TIMED", "SWITCH_METHOD", "NUDGE_CUSTOMER",
-  "CHECKOUT_ABANDONED", "MANDATE_REPAIR", "RECEIVABLE_CHASE", "MANUAL_REVIEW",
-  "DEAD",
-];
 
-// All eleven, including the two that never fire. An empty result for G07 or
-// G10 is the answer to "did the backstops ever catch anything?", and leaving
-// them out of the filter would hide the question.
-const GATES = [
-  "", "G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09", "G10",
-  "G11",
-];
+// The class and gate lists come from /health rather than from a copy kept
+// here. This file used to hold that copy, and when two recovery classes were
+// added to the classifier the filter went on offering the old nine — the new
+// classes were in the data and unreachable from the UI.
+//
+// Every gate is offered, including the ones that never fire. An empty result
+// for G07 or G10 is the answer to "did the backstops ever catch anything?",
+// and leaving them out would hide the question.
 
 /** Blank means "no filter", which reads better as "all" than as an empty row. */
 const toOption = (value: string) => ({ value, label: value || "all" });
@@ -31,6 +27,19 @@ export default function Cases() {
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({ state: "", recovery_class: "", arm: "", blocked_by: "" });
+  // "" is the no-filter option and is always present, so the dropdowns read
+  // "all" rather than being briefly empty while /health is in flight.
+  const [classes, setClasses] = useState<string[]>([""]);
+  const [gates, setGates] = useState<string[]>([""]);
+
+  useEffect(() => {
+    fetchHealth()
+      .then((h) => {
+        setClasses(["", ...h.catalog.recovery_classes]);
+        setGates(["", ...h.catalog.gates]);
+      })
+      .catch((e: Error) => setError(e.message));
+  }, []);
 
   useEffect(() => {
     const params = Object.fromEntries(
@@ -61,7 +70,7 @@ export default function Cases() {
         />
         <Select
           label="Class"
-          options={CLASSES.map(toOption)}
+          options={classes.map(toOption)}
           value={filters.recovery_class}
           onChange={(v) => setFilters((f) => ({ ...f, recovery_class: v }))}
         />
@@ -73,7 +82,7 @@ export default function Cases() {
         />
         <Select
           label="Blocked by gate"
-          options={GATES.map(toOption)}
+          options={gates.map(toOption)}
           value={filters.blocked_by}
           onChange={(v) => setFilters((f) => ({ ...f, blocked_by: v }))}
         />

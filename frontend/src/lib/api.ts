@@ -279,6 +279,7 @@ export interface ValidationResponse {
   reason: string | null;
   checks: Record<string, boolean | number>;
   would_send: string;
+  values_from_case: string | null;
   used: "llm_template" | "deterministic_fallback";
   fallback_template: string;
 }
@@ -291,6 +292,7 @@ export interface HealthStatus {
     ticks: number;
     tick_hours: number;
   };
+  catalog: { recovery_classes: string[]; gates: string[] };
   data: { cases: number; actions: number; events: number };
   integrations: {
     razorpay_test_mode: boolean;

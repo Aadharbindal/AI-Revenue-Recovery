@@ -6,6 +6,7 @@ import { ShieldIcon, TerminalIcon } from "@/components/icons";
 import {
   Callout,
   Card,
+  CaseLink,
   Failed,
   Loading,
   Page,
@@ -202,6 +203,14 @@ export default function Validator() {
 
                 <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--ink-3)] mb-2">
                   What would actually be sent
+                  {/* Naming the case makes the claim checkable: the figures
+                      below are that case's, and you can go and look. */}
+                  {result.values_from_case && (
+                    <span className="normal-case tracking-normal text-[var(--ink-3)]">
+                      {" — values from "}
+                      <CaseLink id={result.values_from_case} />
+                    </span>
+                  )}
                 </div>
                 <Panel>
                   <p className="text-[13px] text-[var(--ink)] leading-relaxed">

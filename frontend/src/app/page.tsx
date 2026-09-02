@@ -140,7 +140,7 @@ export default function CommandCenter() {
             value={guardrails.total_blocks.toLocaleString("en-IN")}
             tone="warn"
             icon={<ShieldAlertIcon size={17} />}
-            sub={`by ${guardrails.gates.filter((g) => g.blocks > 0).length} of 11 gates`}
+            sub={`by ${guardrails.gates.filter((g) => g.blocks > 0).length} of ${guardrails.gates.length} gates`}
           />
           <Stat
             label="Audit ledger"
