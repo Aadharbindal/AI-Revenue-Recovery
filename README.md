@@ -61,7 +61,7 @@ from deterministic templates and payment links are simulated and flagged as
 such. **You do not need our credentials to reproduce our numbers.**
 
 ```bash
-make test      # 126 tests
+make test      # 157 tests
 make verify    # recompute the audit chain from genesis
 make api       # backend on :8000
 make web       # dashboard on :3000
@@ -225,7 +225,7 @@ backend/app/llm/       prompts, validator, deterministic fallbacks
 backend/app/sim/       dataset generator, outcome oracle
 backend/app/analytics/ experiment statistics, report rendering
 backend/app/api/       FastAPI routers
-backend/tests/         126 tests
+backend/tests/         157 tests, including the API and the validator
 frontend/src/app/      command centre, live run, cases, timeline, guardrails,
                        experiment, exceptions, audit, LLM validator
 docs/                  decision table, guardrails, assumptions, future scope

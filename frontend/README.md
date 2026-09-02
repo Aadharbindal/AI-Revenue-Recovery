@@ -25,6 +25,7 @@ backend.
 | `/experiment` | Is the lift real, and where does it come from? |
 | `/exceptions` | What did we fail to recover, and why? |
 | `/audit` | Verify the hash chain, then break it on purpose |
+| `/validator` | **The LLM guardrail, running** — throw a draft at the real validator and watch each check |
 
 `/case/[id]` is the one that matters most. It shows the Razorpay error fields
 the routing decision was built on, every action with all eleven gate verdicts

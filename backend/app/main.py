@@ -6,12 +6,27 @@ in `app/core` and `app/analytics` where it can be tested without HTTP.
 """
 
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import audit, batch, cases, health, llm, metrics, timeline
 from app.db import Base, engine
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """
+    Create tables if they are missing.
+
+    Render's free tier has an ephemeral filesystem, so the committed demo.db can
+    disappear on a restart. Recreating the schema means the API comes back up
+    with empty tables and a working /api/health instead of 500s on every route.
+    """
+    Base.metadata.create_all(bind=engine)
+    yield
+
 
 app = FastAPI(
     title="RecoverOS",
@@ -20,6 +35,7 @@ app = FastAPI(
         "The LLM never touches a rupee."
     ),
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # Set on day one rather than on deploy day. A CORS failure looks exactly like a
@@ -50,18 +66,6 @@ app.include_router(cases.router)
 app.include_router(batch.router)
 app.include_router(audit.router)
 app.include_router(llm.router)
-
-
-@app.on_event("startup")
-def ensure_schema():
-    """
-    Create tables if they are missing.
-
-    Render's free tier has an ephemeral filesystem, so the committed demo.db can
-    disappear on a restart. Recreating the schema means the API comes back up
-    with empty tables and a working /api/health instead of 500s on every route.
-    """
-    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/")
