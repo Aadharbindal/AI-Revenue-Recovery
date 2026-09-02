@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 
-import { ChevronRightIcon, TerminalIcon } from "@/components/icons";
+import { ChevronRightIcon, InfoIcon, TerminalIcon } from "@/components/icons";
 
 /** Shared primitives. Dense, instrument-panel dark, monospace numerals. */
 
@@ -111,32 +111,119 @@ export function Card({
   children,
   className = "",
   aside,
+  icon,
+  tone = "accent",
 }: {
   title?: string;
   hint?: string;
   children: ReactNode;
   className?: string;
   aside?: ReactNode;
+  icon?: ReactNode;
+  tone?: keyof typeof TONES;
 }) {
+  const hex = TONE_HEX[tone];
   return (
     <section
-      className={`bg-[var(--surface)] border border-[var(--line)] rounded-lg ${className}`}
+      className={`border border-[var(--line)] rounded-xl ${className}`}
+      style={cardStyle(hex)}
     >
       {title && (
-        <div className="px-5 py-3.5 border-b border-[var(--line)] flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-[11px] font-semibold text-[var(--ink-2)] uppercase tracking-[0.12em]">
-              {title}
-            </h2>
-            {hint && (
-              <p className="text-xs text-[var(--ink-3)] mt-1 leading-relaxed">{hint}</p>
+        <div className="px-5 pt-5 pb-4 flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3 min-w-0">
+            {icon && (
+              <IconChip hex={hex} size={34}>
+                {icon}
+              </IconChip>
             )}
+            <div className="min-w-0">
+              <h2 className="text-[13px] font-semibold text-[var(--ink)] uppercase tracking-[0.06em] leading-snug">
+                {title}
+              </h2>
+              {hint && (
+                <p className="text-[13px] text-[var(--ink-3)] mt-1 leading-relaxed">
+                  {hint}
+                </p>
+              )}
+            </div>
           </div>
           {aside && <div className="shrink-0">{aside}</div>}
         </div>
       )}
-      <div className="p-5">{children}</div>
+      <div className={title ? "px-5 pb-5" : "p-5"}>{children}</div>
     </section>
+  );
+}
+
+/**
+ * The inset a chart sits in — one step darker than the card, with its own
+ * hairline, so the plot reads as an instrument mounted on the panel rather
+ * than as ink floating on it.
+ */
+export function Panel({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`rounded-lg border border-[var(--line)] bg-[var(--surface-inset)]/70 p-4 ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * An explanation attached to a figure. These carry most of the honesty on this
+ * dashboard — what a number does and does not mean — so they get a container
+ * rather than being small grey text nobody reads.
+ */
+export function Callout({
+  children,
+  tone = "accent",
+}: {
+  children: ReactNode;
+  tone?: keyof typeof TONES;
+}) {
+  const hex = TONE_HEX[tone];
+  return (
+    <div
+      className="mt-4 flex items-start gap-3 rounded-lg border border-[var(--line)] bg-[var(--surface-inset)]/60 px-4 py-3"
+      style={{ borderLeft: `2px solid ${hex}66` }}
+    >
+      <span
+        className="shrink-0 mt-px inline-flex items-center justify-center w-[22px] h-[22px] rounded-full"
+        style={{ color: hex, background: `${hex}1a`, border: `1px solid ${hex}40` }}
+      >
+        <InfoIcon size={13} />
+      </span>
+      <div className="text-[13px] text-[var(--ink-2)] leading-relaxed">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** A bordered link chip, for the "methodology →" affordance on a card head. */
+export function LinkPill({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-[12.5px] transition-colors hover:border-[var(--treatment)]/50"
+      style={{ color: "var(--treatment)" }}
+    >
+      {children}
+      <ChevronRightIcon size={13} />
+    </Link>
   );
 }
 

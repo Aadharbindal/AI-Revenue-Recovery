@@ -1,24 +1,27 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import ActivityRibbon from "@/components/charts/ActivityRibbon";
 import DivergenceChart from "@/components/charts/DivergenceChart";
 import MoneyFlow from "@/components/charts/MoneyFlow";
 import {
+  BanIcon,
+  BarStackIcon,
   ChartUpIcon,
   LedgerIcon,
   RupeeIcon,
   ShieldAlertIcon,
+  ShieldIcon,
   TrendingUpIcon,
 } from "@/components/icons";
 import {
+  Callout,
   Card,
   Failed,
   HeroStat,
+  LinkPill,
   Loading,
-  Note,
   Page,
   Pill,
   Stat,
@@ -156,14 +159,8 @@ export default function CommandCenter() {
       <Card
         title="Treatment vs control, over seven days"
         hint="The wedge between the two lines is the lift. Everything else on this page is downstream of it."
-        aside={
-          <Link
-            href="/experiment"
-            className="text-xs text-[var(--treatment)] hover:underline underline-offset-2"
-          >
-            methodology →
-          </Link>
-        }
+        icon={<TrendingUpIcon size={18} />}
+        aside={<LinkPill href="/experiment">methodology</LinkPill>}
         className="mb-4"
       >
         <DivergenceChart
@@ -171,46 +168,53 @@ export default function CommandCenter() {
           outages={timeline.outages}
           armTotals={timeline.arm_totals}
         />
-        <Note>
+        <Callout>
           The control arm is assigned by hashing the order id, so it was fixed
           before anything was known about any case and anyone can recompute it.
           Control cases are classified and measured but never contacted and never
           billed — there is a test that fails if a single action lands on one.
-        </Note>
+        </Callout>
       </Card>
 
       {/* ── The rhythm of the work ─────────────────────────────────────── */}
       <Card
         title="What the agent did, tick by tick"
         hint="Two-hour ticks. Sent above the line, refused below."
+        icon={<BarStackIcon size={18} />}
         className="mb-4"
       >
         <ActivityRibbon rows={timeline.rows} />
-        <Note>
+        <Callout>
           Activity collapses to nothing every night — that is the quiet-hours
           gate, not a gap in the data. The refusal band is thickest on day one,
           when the issuer is still degraded and the per-customer frequency caps
           are saturated from the previous system&apos;s outreach.
-        </Note>
+        </Callout>
       </Card>
 
       <div className="grid lg:grid-cols-[1.3fr_1fr] gap-4">
         <Card
           title="Where the money went"
-          hint="Bar width is the amount at stake; the filled part came back"
+          hint="The filled part is the share of that lane's money that came back"
+          icon={<RupeeIcon size={18} />}
+          tone="good"
         >
           <MoneyFlow classes={flow.by_class} />
         </Card>
 
         <div className="space-y-4">
-          <Card title="Issuer health" hint="z-scored against each issuer's own baseline">
+          <Card
+            title="Issuer health"
+            hint="z-scored against each issuer's own baseline"
+            icon={<ShieldIcon size={18} />}
+          >
             <div className="space-y-1.5">
               {issuers.map((i) => (
                 <div
                   key={i.issuer}
-                  className="flex items-center justify-between px-3 py-2 bg-[var(--surface-inset)] rounded border border-[var(--line)]"
+                  className="flex items-center justify-between px-3 py-2.5 bg-[var(--surface-inset)]/70 rounded-lg border border-[var(--line)]"
                 >
-                  <span className="text-sm font-mono text-[var(--ink-2)]">
+                  <span className="text-[13px] font-mono text-[var(--ink-2)]">
                     {i.issuer}
                   </span>
                   {i.degraded ? (
@@ -226,38 +230,45 @@ export default function CommandCenter() {
               ))}
             </div>
             {degraded.length > 0 && (
-              <Note>
+              <Callout>
                 {degraded.map((d) => d.issuer).join(", ")} was failing far above
                 its own baseline when the batch began. Retries against it were
                 held rather than spent, and released once it recovered — visible
                 as the amber band on the chart above.
-              </Note>
+              </Callout>
             )}
           </Card>
 
           {/* The finding that works against us, on the landing page. */}
-          <Card title="What this batch cannot claim">
+          <Card
+            title="What this batch cannot claim"
+            icon={<BanIcon size={18} />}
+            tone="warn"
+          >
             <div className="space-y-2.5">
               {insignificant.map((c) => (
-                <div key={c.recovery_class} className="flex items-center gap-3 text-sm">
-                  <span className="font-mono text-xs text-[var(--ink-2)] w-40 shrink-0">
+                <div
+                  key={c.recovery_class}
+                  className="flex items-center gap-3 text-[13px]"
+                >
+                  <span className="font-mono text-[12px] text-[var(--ink-2)] w-40 shrink-0">
                     {c.recovery_class}
                   </span>
-                  <span className="font-mono text-xs text-[var(--ink-3)] tnum">
+                  <span className="font-mono text-[12px] text-[var(--recovered)] tnum">
                     {pp(c.net_lift)}
                   </span>
-                  <span className="ml-auto text-[10px] uppercase tracking-wide text-[var(--ink-4)]">
+                  <span className="ml-auto text-[10px] font-mono uppercase tracking-wide text-[var(--ink-4)]">
                     CI includes 0
                   </span>
                 </div>
               ))}
             </div>
-            <Note>
+            <Callout tone="warn">
               {insignificant.length} of {perClass.length} recovery classes cannot
               be distinguished from doing nothing at this sample size. The
               aggregate lift is significant; these lanes individually are not,
               and saying so here is cheaper than being asked.
-            </Note>
+            </Callout>
           </Card>
         </div>
       </div>

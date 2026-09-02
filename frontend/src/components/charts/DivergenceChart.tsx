@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 
 import type { TimelineRow, Outage } from "@/lib/api";
 import { istTime, pct } from "@/lib/format";
+import { Panel } from "@/components/ui";
 
 /**
  * The counterfactual, drawn.
@@ -102,6 +103,7 @@ export default function DivergenceChart({
 
   return (
     <figure className="m-0">
+      <Panel>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
@@ -156,11 +158,12 @@ export default function DivergenceChart({
               strokeWidth={1}
             />
             <text
-              x={PAD.left - 8}
+              x={PAD.left - 10}
               y={y(v) + 3.5}
               textAnchor="end"
-              fontSize={10}
-              fill="var(--ink-3)"
+              fontSize={11}
+              fontWeight={600}
+              fill="var(--ink-2)"
               className="tnum"
             >
               {Math.round(v * 100)}%
@@ -172,10 +175,11 @@ export default function DivergenceChart({
           <text
             key={i}
             x={x(i)}
-            y={H - 10}
+            y={H - 8}
             textAnchor="middle"
-            fontSize={10}
-            fill="var(--ink-3)"
+            fontSize={11}
+            fontWeight={600}
+            fill="var(--ink-2)"
           >
             day {day + 1}
           </text>
@@ -267,62 +271,83 @@ export default function DivergenceChart({
           </g>
         )}
       </svg>
+      </Panel>
 
-      {h !== null && (
-        <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs font-mono">
-          <span className="text-[var(--ink-3)]">{istTime(rows[h].at)} IST</span>
-          <span className="text-[var(--ink-2)]">
-            <span className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle" style={{ background: "var(--treatment)" }} />
-            treated {pct(treat[h])}
-          </span>
-          <span className="text-[var(--ink-2)]">
-            <span className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle" style={{ background: "var(--control)" }} />
-            untouched {pct(ctrl[h])}
-          </span>
-          <span className="text-[var(--ink)]">
-            gap {((treat[h] - ctrl[h]) * 100).toFixed(1)} pp
-          </span>
-          {rows[h].quiet && (
-            <span className="text-[var(--warn)]">quiet hours — no outreach</span>
-          )}
-        </div>
-      )}
+      <div className="mt-3.5 h-5">
+        {h !== null && (
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-[12.5px] font-mono">
+            <span className="text-[var(--ink-3)]">{istTime(rows[h].at)} IST</span>
+            <span className="text-[var(--ink-2)]">
+              <span
+                className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle"
+                style={{ background: "var(--treatment)" }}
+              />
+              treated {pct(treat[h])}
+            </span>
+            <span className="text-[var(--ink-2)]">
+              <span
+                className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle"
+                style={{ background: "var(--control)" }}
+              />
+              untouched {pct(ctrl[h])}
+            </span>
+            <span className="text-[var(--ink)]">
+              gap {((treat[h] - ctrl[h]) * 100).toFixed(1)} pp
+            </span>
+            {rows[h].quiet && (
+              <span className="text-[var(--warn)]">quiet hours — no outreach</span>
+            )}
+          </div>
+        )}
+      </div>
 
-      <figcaption className="mt-3 flex flex-wrap items-center gap-4 text-[11px] text-[var(--ink-3)]">
-        <Legend swatch="var(--treatment)" label="Treatment — worked by the agent" />
-        <Legend swatch="var(--control)" label="Control — never contacted" dashed />
-        <Legend swatch="#05060700" label="Quiet hours (9PM–9AM IST)" dark />
-        <Legend swatch="rgba(250,178,25,0.35)" label="Issuer degraded, retries held" />
+      <figcaption className="mt-1 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12.5px] text-[var(--ink-2)]">
+        <LegendLine color="var(--treatment)" label="Treatment — worked by the agent" />
+        <LegendLine color="var(--control)" label="Control — never contacted" dashed />
+        <LegendBand label="Quiet hours (9PM–9AM IST)" />
+        <LegendBand label="Issuer degraded, retries held" color="var(--warn)" />
       </figcaption>
     </figure>
   );
 }
 
-function Legend({
-  swatch,
+function LegendLine({
+  color,
   label,
   dashed,
-  dark,
 }: {
-  swatch: string;
+  color: string;
   label: string;
   dashed?: boolean;
-  dark?: boolean;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5">
+    <span className="inline-flex items-center gap-2">
+      <svg width="26" height="8" aria-hidden="true">
+        <line
+          x1="1"
+          y1="4"
+          x2="25"
+          y2="4"
+          stroke={color}
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray={dashed ? "5 3" : undefined}
+        />
+      </svg>
+      {label}
+    </span>
+  );
+}
+
+/** Ring swatches for the shaded regions — they are areas, not lines. */
+function LegendBand({ label, color }: { label: string; color?: string }) {
+  return (
+    <span className="inline-flex items-center gap-2">
       <span
-        className="inline-block w-3 h-2 rounded-sm"
+        className="inline-block w-3.5 h-3.5 rounded-full"
         style={{
-          // The quiet-hours swatch is a darkening overlay, so it is shown the
-          // way it appears on the chart: the plot fill seen through it.
-          background: dark ? "var(--plane)" : swatch,
-          opacity: dark ? 0.85 : 1,
-          border: dashed
-            ? "1px dashed var(--control)"
-            : dark
-              ? "1px solid var(--line-strong)"
-              : undefined,
+          background: color ? `${"var(--plane)"}` : "var(--plane)",
+          border: `1.5px solid ${color ?? "var(--line-strong)"}`,
         }}
       />
       {label}

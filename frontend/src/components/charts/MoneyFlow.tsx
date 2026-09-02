@@ -4,27 +4,28 @@ import Link from "next/link";
 import { useState } from "react";
 
 import type { FlowClass } from "@/lib/api";
-import { CLASS_COLORS, pct, rupeesShort } from "@/lib/format";
+import { pct, rupeesShort } from "@/lib/format";
 
 /**
  * Where every rupee at risk ended up.
  *
- * One row per recovery class, width proportional to money at stake, split into
- * the share recovered and the share still outstanding. It answers the question
- * a merchant actually asks — "of my money, how much came back, and from
- * where?" — which a table of counts does not.
+ * One row per recovery class: the amounts in the header line, and a track whose
+ * filled part is the share of that class's money that came back. Rows are
+ * ordered by amount at risk, which is also the order the agent works them in,
+ * so the chart doubles as a picture of its prioritisation.
  *
- * Rows are ordered by amount at risk, which is also the order the agent works
- * them in, so the chart doubles as a picture of its prioritisation.
+ * The tracks are full width rather than scaled to the amount. Scaling them made
+ * the small classes almost invisible — DEAD reduced to a sliver — and the
+ * question this answers is "what share of this lane's money came back", which
+ * is a proportion. The absolute amount is on the row, in rupees, where it can
+ * be read exactly instead of estimated from a length.
  */
 export default function MoneyFlow({ classes }: { classes: FlowClass[] }) {
   const [hover, setHover] = useState<string | null>(null);
-  const max = Math.max(...classes.map((c) => c.at_risk_paise), 1);
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
       {classes.map((c) => {
-        const share = c.at_risk_paise / max;
         const recovered =
           c.at_risk_paise > 0 ? c.recovered_paise / c.at_risk_paise : 0;
         const active = hover === null || hover === c.recovery_class;
@@ -37,68 +38,65 @@ export default function MoneyFlow({ classes }: { classes: FlowClass[] }) {
             onMouseEnter={() => setHover(c.recovery_class)}
             onMouseLeave={() => setHover(null)}
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-mono text-[var(--ink-2)] group-hover:text-[var(--ink)] transition-colors">
+            <div className="flex items-baseline justify-between gap-4 mb-1.5">
+              <span className="text-[12.5px] font-mono text-[var(--ink-2)] group-hover:text-[var(--ink)] transition-colors">
                 {c.recovery_class}
               </span>
-              <span className="text-xs font-mono text-[var(--ink-3)] tnum">
+              <span className="text-[12.5px] font-mono text-[var(--ink-3)] tnum shrink-0">
                 {rupeesShort(c.recovered_paise)}
                 <span className="text-[var(--ink-4)]"> of </span>
                 {rupeesShort(c.at_risk_paise)}
-                <span className="text-[var(--ink-4)] ml-2">{c.cases}&nbsp;cases</span>
+                <span className="text-[var(--ink-4)] ml-2">{c.cases} cases</span>
               </span>
             </div>
 
             <div
-              className="relative h-5 rounded-sm overflow-hidden transition-opacity"
+              className="relative h-6 rounded-md overflow-hidden border border-[var(--line)] transition-opacity"
               style={{
-                width: `${Math.max(share * 100, 4)}%`,
-                opacity: active ? 1 : 0.4,
+                background: "var(--surface-inset)",
+                opacity: active ? 1 : 0.45,
               }}
             >
-              {/* Total at risk */}
               <div
-                className="absolute inset-0 rounded-sm"
-                style={{ background: "var(--surface-raised)" }}
-              />
-              {/* Recovered share, with a 2px surface gap at the join */}
-              <div
-                className="absolute inset-y-0 left-0 rounded-sm"
+                className="absolute inset-y-0 left-0 rounded-md transition-all duration-500"
                 style={{
-                  width: `${recovered * 100}%`,
+                  width: `${Math.max(recovered * 100, recovered > 0 ? 2 : 0)}%`,
                   background: "var(--recovered)",
-                  boxShadow: "2px 0 0 0 var(--surface)",
                 }}
               />
-              {recovered > 0.12 && (
-                <span className="absolute inset-y-0 left-2 flex items-center text-[10px] font-mono text-[#04140d] font-semibold">
-                  {pct(recovered, 0)}
-                </span>
-              )}
+              <span
+                className={`absolute inset-y-0 flex items-center text-[11px] font-mono font-semibold ${
+                  recovered > 0.14 ? "left-2.5 text-[#04140d]" : "text-[var(--ink-3)]"
+                }`}
+                style={
+                  recovered > 0.14
+                    ? undefined
+                    : { left: `calc(${recovered * 100}% + 10px)` }
+                }
+              >
+                {pct(recovered, 0)}
+              </span>
             </div>
           </Link>
         );
       })}
 
-      <div className="flex items-center gap-4 pt-2 text-[11px] text-[var(--ink-3)]">
-        <span className="inline-flex items-center gap-1.5">
+      <div className="flex items-center gap-4 pt-1.5 text-[12px] text-[var(--ink-3)]">
+        <span className="inline-flex items-center gap-2">
           <span
-            className="inline-block w-3 h-2 rounded-sm"
+            className="inline-block w-2.5 h-2.5 rounded-full"
             style={{ background: "var(--recovered)" }}
           />
           recovered
         </span>
-        <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-2">
           <span
-            className="inline-block w-3 h-2 rounded-sm"
-            style={{ background: "var(--surface-raised)" }}
+            className="inline-block w-2.5 h-2.5 rounded-full border border-[var(--line-strong)]"
+            style={{ background: "var(--surface-inset)" }}
           />
           still at risk
         </span>
-        <span className="ml-auto">bar width = money at stake</span>
       </div>
     </div>
   );
 }
-
-export { CLASS_COLORS };

@@ -151,6 +151,43 @@ export function ShieldAlertIcon(props: IconProps) {
   );
 }
 
+export function InfoIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5" />
+      <path d="M12 7.8h.01" />
+    </Svg>
+  );
+}
+
+export function CursorIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M5 3.5l13.5 7.8-6 1.4-2.6 5.8z" />
+    </Svg>
+  );
+}
+
+/** Where the money went — the rupee, again, at card scale. */
+export function BarStackIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3.5" y="4" width="6.5" height="16" rx="1.5" />
+      <rect x="14" y="9.5" width="6.5" height="10.5" rx="1.5" />
+    </Svg>
+  );
+}
+
+export function BanIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M5.6 5.6l12.8 12.8" />
+    </Svg>
+  );
+}
+
 export function ChevronRightIcon(props: IconProps) {
   return (
     <Svg {...props} size={props.size ?? 16}>
