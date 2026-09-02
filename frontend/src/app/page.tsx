@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import ActivityRibbon from "@/components/charts/ActivityRibbon";
 import DivergenceChart from "@/components/charts/DivergenceChart";
 import MoneyFlow from "@/components/charts/MoneyFlow";
+import PipelineStrip from "@/components/charts/PipelineStrip";
 import {
   BanIcon,
   BarStackIcon,
@@ -94,8 +95,17 @@ export default function CommandCenter() {
         { label: "Track 03", accent: true },
       ]}
       title="Revenue at risk, and what came back"
-      subtitle="725 failed payments and overdue invoices, worked for seven simulated days behind eleven policy gates — and measured against a fifth of the batch the agent was never allowed to touch."
+      subtitle="Failed payments, abandoned carts and overdue invoices — worked for seven simulated days behind eleven policy gates, and measured against a fifth of the batch the agent was never allowed to touch."
     >
+      <PipelineStrip
+        cases={e.treatment_n + e.control_n}
+        classes={perClass.length}
+        sent={timeline.rows.reduce((n, r) => n + r.sent, 0)}
+        refused={guardrails.total_blocks}
+        recovered={e.treatment_recovered + e.control_recovered}
+        lift={pp(e.net_lift)}
+      />
+
       {/* ── The hero. Two numbers, and the honest one is bigger. ───────── */}
       <div className="grid lg:grid-cols-[1.15fr_1fr] gap-4 mb-4">
         <HeroStat

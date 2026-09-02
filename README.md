@@ -36,6 +36,12 @@ the draft is discarded and a deterministic template is used instead. The only
 way a rupee figure reaches a customer is Python substituting `{{amount}}` with a
 value read from the database.
 
+**You can watch this happen.** The `/validator` page runs the same function the
+batch calls against the drafts a model actually produces when told not to write
+numbers — an invented rupee figure, an invented due date, a legal threat, a
+Hinglish legal threat, a voice script with no opt-out — and shows every check
+plus what would really have been sent. It needs no API key.
+
 Two consequences: a batch of 725 cases costs on the order of eighteen model
 calls rather than 725, because templates are cached per (class, tier,
 language); and when the provider is down, rate-limits us, or returns malformed
@@ -74,6 +80,7 @@ python backend/scripts/seed.py           # build demo.db from seed 42
 python backend/scripts/run_batch.py      # run the 7-day simulation
 python backend/scripts/make_report.py    # regenerate EVALUATION.md
 python backend/scripts/verify_ledger.py  # recompute the audit chain
+python backend/scripts/render_voice.py   # render the Hinglish voice scripts
 python -m pytest backend/tests -q        # tests
 python -m uvicorn app.main:app --port 8000
 cd frontend && npm run dev

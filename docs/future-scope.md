@@ -24,20 +24,15 @@ approvals, and none of it demonstrates anything about the recovery logic. The
 part worth judging — that a voice script is subject to the same validator and
 the same gates as an SMS — is built.
 
-### Subscription and mandate recovery
+### Live mandate re-authorisation
 
-`mandate_revoked` is classified as `DEAD` and stopped. In production it is a
-lane of its own: re-authorisation flows, UPI Autopay mandate repair, card
-network updater. It has a different ladder and different economics.
+`MANDATE_REPAIR` asks the customer to authorise a new mandate and never retries
+against the revoked one. What is missing is the actual UPI Autopay
+re-authorisation handshake and the card-network account updater — the link in
+the message points at a payment link, not a mandate-creation flow.
 
-**Why cut:** a third lane would have meant three shallow lanes instead of two
-deep ones.
-
-### Checkout abandonment before a payment attempt
-
-RecoverOS starts at a *failed payment*. Carts abandoned before any attempt never
-produce an `error_reason`, so the classifier has nothing to route on. They need
-intent signals rather than failure taxonomy — a genuinely different problem.
+**Why cut:** the routing decision and the ladder are the part worth judging;
+the handshake is provider integration.
 
 ### Real-time streaming
 
@@ -64,12 +59,17 @@ high-value cases reach it, or the ₹50 estimate for agent time is wrong.
 This is the finding the per-class table exists to surface, and it points at our
 own design.
 
-### Four of six classes are not statistically significant
+### Six of nine classes are not statistically significant
 
-`RETRY_TIMED`, `NUDGE_CUSTOMER`, `SWITCH_METHOD` and `MANUAL_REVIEW` all have
-intervals crossing zero at this sample size. The aggregate result is
-significant; the per-lane results mostly are not. Detecting per-lane effects
-would need roughly four times the batch.
+The aggregate result is significant; most per-lane results are not. Detecting
+per-lane effects would need roughly four times the batch.
+
+`MANDATE_REPAIR` is the sharpest case. Arm assignment is stratified per
+*cohort* — attempted orders, abandoned carts, invoices — but a recovery class
+is only known after classification, so a class that cuts across a cohort takes
+whatever control cases it happens to get. Mandate failures land at about n=37
+treatment against n=6 control, and the interval is over thirty points wide.
+Stratifying by predicted class would fix it and is the obvious next step.
 
 ### The receivables lane is measured pessimistically
 

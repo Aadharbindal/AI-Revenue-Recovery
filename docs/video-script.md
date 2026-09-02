@@ -17,8 +17,8 @@ would have" — only what exists.
 **On screen:** `/` Command Center. Let the hero figure sit for a beat, then
 scroll slowly to the divergence chart and stop there.
 
-> "Seven hundred and twenty-five failed payments and overdue invoices. One crore
-> six lakh rupees at risk.
+> "Eight hundred and fifteen cases — failed payments, abandoned carts and
+> overdue invoices. One crore eleven lakh rupees at risk.
 >
 > This is the chart the whole project is about. The blue line is the cases the
 > agent worked. The grey one is a fifth of the batch it was never allowed to
@@ -94,7 +94,24 @@ Let it reach roughly tick 40 before moving on.
 
 ---
 
-## 2:55–3:20 · Break the audit trail
+## 2:50–3:15 · The claim, running
+
+**On screen:** `/validator`. Pick **"The model wrote the rupee figure itself"**.
+
+> "The architecture rests on one claim, so here it is running rather than
+> asserted. This is a draft a model actually produces when you tell it not to
+> write numbers — it wrote 'Rs 1,499'. That number is the model's guess, not the
+> database's value.
+>
+> Rejected. No literal digits in the body — failed. And here is what actually
+> goes out instead: the deterministic template, with one lakh forty-one
+> thousand nine hundred twenty-two rupees, read from the database.
+>
+> A rejection is a downgrade, not an outage. The batch does not stop."
+
+If you have thirty spare seconds, type "police" into the box and validate again.
+
+## 3:15–3:35 · Break the audit trail
 
 **On screen:** `/audit`.
 
@@ -108,13 +125,12 @@ Let it reach roughly tick 40 before moving on.
 
 ---
 
-## 3:20–3:50 · Failures, handled
+## 3:35–3:55 · Failures, handled
 
 **On screen:** `/guardrails`.
 
-> "One thousand one hundred and seventy actions refused. Three hundred and
-> seventy-six rupees of spend avoided, and four lakh sixty-two thousand of
-> priced compliance exposure.
+> "One thousand three hundred and seventy actions refused, and every refusal
+> carries its full eleven-gate trail.
 >
 > Scroll down and you'll find two gates that blocked *nothing* — risk hold and
 > the stopping rule. That's correct, not missing: the ladder never proposes
@@ -128,7 +144,7 @@ Let it reach roughly tick 40 before moving on.
 
 ---
 
-## 3:50–4:35 · Did it work?
+## 3:55–4:35 · Did it work?
 
 **On screen:** `/experiment`.
 
@@ -136,20 +152,21 @@ Let it reach roughly tick 40 before moving on.
 > contacted — assigned by hashing the order id, so the arm was fixed before
 > anything was known about the case, and anyone can recompute it.
 >
-> Treatment recovered thirty-five point one percent. Control — untouched —
-> sixteen point three. So the gross number is thirty-five, but sixteen of that
-> would have happened anyway. **Net incremental lift, eighteen point eight
-> percentage points**, confidence interval eleven point seven to twenty-five
-> point nine. It excludes zero, so it's real at this sample size.
+> Treatment recovered thirty-three point four percent. Control — untouched —
+> nineteen. So the gross number is thirty-three, but nineteen of that would
+> have happened anyway. **Net incremental lift, fourteen point four percentage
+> points**, confidence interval seven point four to twenty-one point four. It
+> excludes zero, so it's real at this sample size.
 >
-> Incremental value, twenty-four lakh, on fifteen hundred and thirty-three
-> rupees of messaging.
+> Twenty rupees thirty per incremental recovery. I'm quoting that rather than
+> the ROI multiple, because the multiple only counts messaging cost and the
+> per-recovery figure is comparable to something.
 >
 > And now the part I'd rather you saw from me than found yourselves."
 > *(scroll to the per-class table)*
-> "**Four of these six lanes are not statistically significant.** And the most
-> expensive lane — the human review queue, thirteen hundred and fifty rupees,
-> eighty-eight percent of my total spend — has a confidence interval that
+> "**Six of these nine lanes are not statistically significant.** And the most
+> expensive lane — the human review queue, seventeen hundred rupees,
+> eighty-nine percent of my total spend — has a confidence interval that
 > includes zero. On this batch, routing risk-blocked cases to a person is not
 > paying for itself. That's a finding about my own design, and it's in
 > EVALUATION.md."
@@ -180,9 +197,10 @@ Let it reach roughly tick 40 before moving on.
 | Problem | 0:25 |
 | Architecture | 1:00 |
 | Live run | 2:15 |
-| Case timeline | 2:55 |
-| Audit tamper | 3:20 |
-| Guardrails | 3:50 |
+| Case timeline | 2:50 |
+| Validator running | 3:15 |
+| Audit tamper | 3:35 |
+| Guardrails | 3:55 |
 | Experiment | 4:35 |
 | 2AM + close | 5:00 |
 
@@ -199,6 +217,8 @@ segment — that is the strongest thirty seconds in the video.
 
 - [ ] `make demo` on a clean clone, so the numbers on screen match EVALUATION.md
 - [ ] Hit `/api/health` once to warm the backend
-- [ ] Have `case_0721` (or another multi-action case) already found
+- [ ] Have a multi-action case already found — `case_0797` reaches the Tier-3
+      voice script and shows the promise-to-pay hold firing
+- [ ] Open `/validator` once so it is warm, with the rupee-figure sample selected
 - [ ] Re-run the batch after the tamper demo so the chain is valid again
 - [ ] If you set Razorpay test keys, open one real `short_url` in a tab first

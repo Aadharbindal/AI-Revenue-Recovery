@@ -9,7 +9,7 @@ PYTHON  ?= python
 BACKEND := backend
 export PYTHONPATH := $(BACKEND)
 
-.PHONY: help demo install seed run-batch report verify test api web build clean
+.PHONY: help demo install seed run-batch report verify voice test api web build clean
 
 help:
 	@echo "RecoverOS"
@@ -18,6 +18,7 @@ help:
 	@echo "  make install   install backend and frontend dependencies"
 	@echo "  make test      run the test suite"
 	@echo "  make verify    recompute the audit chain from genesis"
+	@echo "  make voice     render the Hinglish voice scripts to audio"
 	@echo "  make api       backend on http://localhost:8000"
 	@echo "  make web       dashboard on http://localhost:3000"
 	@echo ""
@@ -43,6 +44,9 @@ report:
 
 verify:
 	$(PYTHON) $(BACKEND)/scripts/verify_ledger.py
+
+voice:
+	$(PYTHON) $(BACKEND)/scripts/render_voice.py
 
 test:
 	$(PYTHON) -m pytest $(BACKEND)/tests -q

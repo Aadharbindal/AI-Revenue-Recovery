@@ -271,7 +271,17 @@ function ActionBlock({ action }: { action: ActionRow }) {
         </p>
       ))}
 
-      {action.message_body && (
+      {/*
+        A Tier-3 action is a phone call, so its script gets treated as a script:
+        shown in full with the keypad options, and played if audio has been
+        rendered. Rendering needs a TTS key; the script does not, and it is
+        generated, validated and placed by the batch either way.
+      */}
+      {action.channel === "voice" && action.message_body && (
+        <VoiceScript body={action.message_body} />
+      )}
+
+      {action.channel !== "voice" && action.message_body && (
         <div className="mt-3 p-3 rounded bg-[var(--surface-inset)] border border-[var(--line)]">
           <p className="text-sm text-[var(--ink)] leading-relaxed">
             {action.message_body}
@@ -322,6 +332,56 @@ function ActionBlock({ action }: { action: ActionRow }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function VoiceScript({ body }: { body: string }) {
+  const [audioOk, setAudioOk] = useState(true);
+  const src = "/voice/receivable_hinglish.wav";
+
+  return (
+    <div className="mt-3 rounded-lg border border-[var(--line)] bg-[var(--surface-inset)] p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <Pill className="text-[var(--warn)] border-[var(--warn)]/30 bg-[var(--warn)]/10">
+          Hinglish voice script
+        </Pill>
+        <span className="text-[11px] text-[var(--ink-4)]">
+          {body.length} of 400 characters
+        </span>
+      </div>
+
+      <p className="text-[13px] text-[var(--ink)] leading-relaxed">{body}</p>
+
+      <div className="flex flex-wrap gap-2 mt-3">
+        <Pill>1 — confirm a payment date</Pill>
+        <Pill>2 — call me later</Pill>
+        <Pill className="text-[var(--warn)] border-[var(--warn)]/30 bg-[var(--warn)]/10">
+          9 — stop these calls
+        </Pill>
+      </div>
+
+      {audioOk ? (
+        <audio
+          controls
+          src={src}
+          onError={() => setAudioOk(false)}
+          className="w-full mt-3.5 h-9"
+        />
+      ) : (
+        <p className="text-[12px] text-[var(--ink-4)] mt-3.5 leading-relaxed">
+          No audio rendered — <span className="font-mono">SARVAM_API_KEY</span>{" "}
+          is not configured. The script above is still generated, validated and
+          placed by the batch; only the text-to-speech step is missing.
+        </p>
+      )}
+
+      <Note>
+        The script passes the same validator a text message does, plus two rules
+        only calls have: it must say it is automated, and it must offer a way
+        out. Every number in it is spelled as a word, because the validator
+        rejects a draft containing a digit.
+      </Note>
     </div>
   );
 }
