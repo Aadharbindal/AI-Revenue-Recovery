@@ -349,13 +349,18 @@ function ActionBlock({ action }: { action: ActionRow }) {
 
 function VoiceScript({ body }: { body: string }) {
   const [audioOk, setAudioOk] = useState(true);
-  const src = "/voice/receivable_hinglish.wav";
+
+  // The rendered clip is one recording of this script, not this exact case's
+  // — every Tier-3 call shares the template and differs only in the values
+  // substituted into it. English by default because that is what the demo
+  // plays; `make voice` also renders the Hinglish take.
+  const src = "/voice/receivable_english.wav";
 
   return (
     <div className="mt-3 rounded-lg border border-[var(--line)] bg-[var(--surface-inset)] p-4">
       <div className="flex items-center gap-2 mb-3">
         <Pill className="text-[var(--warn)] border-[var(--warn)]/30 bg-[var(--warn)]/10">
-          Hinglish voice script
+          Voice script
         </Pill>
         <span className="text-[11px] text-[var(--ink-4)]">
           {body.length} of 400 characters

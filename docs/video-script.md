@@ -44,9 +44,15 @@ seconds.
 > containing a literal digit, so the only way a rupee figure reaches a customer
 > is Python substituting it from the database.
 >
-> Six hundred cases, eighteen model calls. The model writes the template once;
-> the code fills in every rupee, every name, every link. If the provider goes
-> down mid-batch, the batch doesn't."
+> Six hundred and eighty-eight messages, sixty-four model calls. Each
+> combination of class, tier, language and channel is asked once and cached.
+> The model writes the sentence; the code fills in every rupee, every name,
+> every link.
+>
+> On this run the validator rejected a hundred and two live drafts — seventy-
+> eight that left out the amount token, twelve voice scripts with no opt-out,
+> and twelve SMS one character over the limit. Every one fell back to a
+> deterministic template, and the batch never stopped."
 
 ---
 
@@ -137,10 +143,11 @@ If you have thirty spare seconds, type "police" into the box and validate again.
 > contact for a risk-blocked case. They're the backstop. If either ever fires,
 > I have a bug upstream — and I'd rather report the zero than hide it.
 >
-> Message bodies: this deployment has no LLM key configured, so every one came
-> from a deterministic template. That's not a failure mode I'm hiding from —
-> it's exactly what happens when the provider is down mid-batch, and the batch
-> still finishes."
+> Message bodies: four hundred and sixty-nine written by the model, two
+> hundred and nineteen from deterministic templates — a hundred and two of
+> those because the validator refused the model's draft, the rest because a
+> free-tier rate limit kicked in mid-batch. Which is the point: the batch
+> finished anyway."
 
 ---
 
@@ -218,7 +225,11 @@ segment — that is the strongest thirty seconds in the video.
 - [ ] `make demo` on a clean clone, so the numbers on screen match EVALUATION.md
 - [ ] Hit `/api/health` once to warm the backend
 - [ ] Have a multi-action case already found — `case_0797` reaches the Tier-3
-      voice script and shows the promise-to-pay hold firing
+      voice script, plays the rendered audio, and shows the promise-to-pay hold
+      firing on the two calls after it
+- [ ] Have a live-link case open in a tab: `case_0045`, `case_0731`,
+      `case_0206` or `case_0478` each carry a real Razorpay test-mode
+      `short_url`. Open one so the checkout page is already loaded
 - [ ] Open `/validator` once so it is warm, with the rupee-figure sample selected
 - [ ] Re-run the batch after the tamper demo so the chain is valid again
 - [ ] If you set Razorpay test keys, open one real `short_url` in a tab first

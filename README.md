@@ -42,10 +42,15 @@ numbers — an invented rupee figure, an invented due date, a legal threat, a
 Hinglish legal threat, a voice script with no opt-out — and shows every check
 plus what would really have been sent. It needs no API key.
 
-Two consequences: a batch of 725 cases costs on the order of eighteen model
-calls rather than 725, because templates are cached per (class, tier,
-language); and when the provider is down, rate-limits us, or returns malformed
-JSON, the batch does not stop.
+Two consequences. Templates are cached per (class, tier, language, channel) and
+each combination is attempted exactly once, so **688 rendered messages cost 64
+provider calls** — eleven messages per call. And when the provider is down,
+rate-limits us, or returns malformed JSON, the batch does not stop.
+
+On the committed run the validator rejected **102 live model drafts**: 78 that
+omitted `{{amount}}`, 12 voice scripts with no opt-out, and 12 SMS one
+character over the 160-character limit. Each fell back to a deterministic
+template with the reason recorded on the action row.
 
 ---
 
@@ -128,8 +133,9 @@ and nothing else; the per-recovery figure is comparable to something.
 
 **Real:** the classifier, the eleven-gate policy engine, the escalation ladder,
 the issuer-health detector, the LLM validator, the hash-chained audit ledger,
-the treatment/control assignment, the statistics, and the Razorpay test-mode
-Payment Links API integration.
+the treatment/control assignment, the statistics, the Razorpay test-mode
+Payment Links API integration, the model calls (469 of the 688 message bodies
+were written by one), and the rendered voice audio.
 
 **Simulated:** whether a customer paid. Outcomes come from a seeded oracle whose
 base rates are written down and justified in

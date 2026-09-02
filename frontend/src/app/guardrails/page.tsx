@@ -40,6 +40,12 @@ export default function Guardrails() {
   if (!data) return <Loading what="guardrails" />;
 
   const { g, d } = data;
+  // A provider outage and a refused draft both end in a fallback, but only one
+  // of them is the guardrail doing its job. Counting them together would
+  // overstate what the validator caught.
+  const rejectedByValidator = Object.entries(d.fallback_reasons)
+    .filter(([reason]) => !reason.startsWith("PROVIDER_ERROR"))
+    .reduce((n, [, count]) => n + count, 0);
   const maxBlocks = Math.max(...g.gates.map((x) => x.blocks), 1);
   const silent = g.gates.filter((x) => x.blocks === 0);
 
@@ -177,9 +183,26 @@ export default function Guardrails() {
             </div>
           )}
           <Callout>
-            {d.messages_from_llm === 0
-              ? "No LLM provider is configured in this deployment, so every body came from a deterministic template. That is the honest state rather than a hidden one — and it is exactly what happens when the provider is down mid-batch."
-              : "Templates are cached per (class, tier, language), so a batch of hundreds of cases costs on the order of eighteen model calls. Any draft containing a literal digit is rejected before it can become a message."}
+            {d.messages_from_llm === 0 ? (
+              "No LLM provider is configured in this deployment, so every body came from a deterministic template. That is the honest state rather than a hidden one — and it is exactly what happens when the provider is down mid-batch."
+            ) : (
+              <>
+                Templates are cached per (class, tier, language, channel) and
+                each combination is asked once, so{" "}
+                <span className="text-[var(--ink)] font-mono">
+                  {d.messages_from_llm + d.messages_from_fallback}
+                </span>{" "}
+                messages cost a few dozen provider calls rather than one each.
+                Of the {d.messages_from_fallback} that fell back,{" "}
+                <span className="text-[var(--ink)] font-mono">
+                  {rejectedByValidator}
+                </span>{" "}
+                were the model&apos;s own drafts being refused — a missing
+                amount token, a voice script with no opt-out, an SMS one
+                character over the limit. The rest were the provider being
+                unavailable, which the batch survived either way.
+              </>
+            )}
           </Callout>
           <Callout>
             {d.real_payment_links} live Razorpay test-mode links were minted;

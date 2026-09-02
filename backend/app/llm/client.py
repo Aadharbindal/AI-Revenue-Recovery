@@ -36,7 +36,25 @@ except ImportError:  # the repo must run with zero API keys and no litellm
     _completion = None
     _HAS_LITELLM = False
 
-MODEL = os.environ.get("LLM_MODEL", "groq/llama-3.3-70b-versatile")
+# Providers retire models constantly, and a hardcoded id that no longer exists
+# fails as a 404 per call — which this system handles by falling back to
+# deterministic templates, so the whole LLM path goes quiet with nothing in the
+# logs but a reason code. That is exactly what happened to
+# `groq/llama-3.3-70b-versatile`.
+#
+# So: a candidate list, tried in order, and the first one that answers is
+# remembered for the rest of the process. Set LLM_MODEL to pin one.
+MODEL = os.environ.get("LLM_MODEL")
+
+MODEL_CANDIDATES = [
+    # Chosen for reliable JSON-mode output. The gpt-oss models on Groq are
+    # capable but fail this schema under strict JSON validation.
+    "groq/qwen/qwen3.8-27b",
+    "groq/openai/gpt-oss-120b",
+    "gemini/gemini-2.0-flash",
+]
+
+_resolved_model: Optional[str] = None
 
 
 def _offline() -> bool:
@@ -50,8 +68,18 @@ def _offline() -> bool:
     """
     return bool(os.environ.get("RECOVEROS_OFFLINE"))
 
-# Cache key is (recovery_class, tier, language) — deliberately not the channel,
-# because channel only changes the length cap, which the validator enforces.
+# One provider call per (recovery_class, tier, language, channel), and never
+# more than one — successes *and* failures are cached.
+#
+# Caching only successes looks harmless and is not: a rate-limited combination
+# is retried on every case that needs it, which turns one throttled call into
+# hundreds and guarantees the rest of the batch is throttled too. A real run
+# produced 408 RateLimitErrors that way. An attempt that failed is still an
+# attempt, and the deterministic template it fell back to is a perfectly good
+# answer to reuse.
+#
+# Channel is part of the key because it changes the content, not just the
+# length cap — an SMS cannot say what an email says.
 _template_cache: dict = {}
 _call_count = 0
 
@@ -77,6 +105,21 @@ def _fallback(recovery_class: str, channel: str, language: str,
     }
 
 
+def _remember(cache_key, result: dict) -> dict:
+    """Cache whatever we ended up with, so a combination is attempted once."""
+    _template_cache[cache_key] = result
+    return result
+
+
+def _candidates() -> list:
+    """Pinned model if set, otherwise the candidate list, best first."""
+    if MODEL:
+        return [MODEL]
+    if _resolved_model:
+        return [_resolved_model]
+    return MODEL_CANDIDATES
+
+
 def get_message_template(recovery_class: str, tier: int, channel: str,
                          language: str) -> dict:
     """
@@ -92,45 +135,59 @@ def get_message_template(recovery_class: str, tier: int, channel: str,
         return _template_cache[cache_key]
 
     if _offline():
-        return _fallback(recovery_class, channel, language, "OFFLINE")
+        return _remember(cache_key, _fallback(
+            recovery_class, channel, language, "OFFLINE"))
     if not _HAS_LITELLM:
-        return _fallback(recovery_class, channel, language, "LITELLM_NOT_INSTALLED")
+        return _remember(cache_key, _fallback(
+            recovery_class, channel, language, "LITELLM_NOT_INSTALLED"))
     if not (os.environ.get("GROQ_API_KEY") or os.environ.get("GEMINI_API_KEY")):
-        return _fallback(recovery_class, channel, language, "NO_API_KEY")
+        return _remember(cache_key, _fallback(
+            recovery_class, channel, language, "NO_API_KEY"))
 
-    try:
-        _call_count += 1
-        response = _completion(
-            model=MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": build_user_prompt(
-                    recovery_class, channel, language)},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.1,
-            max_tokens=400,
-        )
-        raw = response.choices[0].message.content
-    except Exception as exc:
-        return _fallback(recovery_class, channel, language,
-                         f"PROVIDER_ERROR:{type(exc).__name__}")
+    global _resolved_model
+
+    raw = None
+    last_error = "NO_MODEL"
+    for model in _candidates():
+        try:
+            _call_count += 1
+            response = _completion(
+                model=model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": build_user_prompt(
+                        recovery_class, channel, language)},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.1,
+                max_tokens=400,
+            )
+            raw = response.choices[0].message.content
+            _resolved_model = model
+            break
+        except Exception as exc:
+            # A retired or incapable model should cost one attempt, not the
+            # whole feature. Anything the next candidate can also not do will
+            # exhaust the list and fall through to the deterministic template.
+            last_error = f"{type(exc).__name__}"
+
+    if raw is None:
+        return _remember(cache_key, _fallback(
+            recovery_class, channel, language, f"PROVIDER_ERROR:{last_error}"))
 
     result = validate(raw, {"language": language, "channel": channel})
     if not result.ok:
         # This is the interesting path, not the sad one: the guardrail worked.
-        return _fallback(recovery_class, channel, language, result.reason,
-                         result.checks)
+        return _remember(cache_key, _fallback(
+            recovery_class, channel, language, result.reason, result.checks))
 
     draft = DraftMessage.model_validate_json(raw)
-    template = {
+    return _remember(cache_key, {
         "body": draft.body,
         "llm_used": True,
         "llm_rejected_reason": None,
         "validation": result.checks,
-    }
-    _template_cache[cache_key] = template
-    return template
+    })
 
 
 _PLACEHOLDER = re.compile(r"\{\{\s*(\w+)\s*\}\}")

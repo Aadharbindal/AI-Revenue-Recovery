@@ -1,17 +1,17 @@
 {
   "clips": [
     {
-      "id": "receivable_hinglish",
-      "language": "hinglish",
-      "script": "Namaste Meera Iyer ji. Yeh Demo Merchant ki taraf se automated reminder call hai. Aapka invoice inv_078, amount one lakh forty one thousand nine hundred twenty two rupees, nine din se pending hai. Payment link WhatsApp par bhej diya hai. Date confirm karne ke liye ek dabaiye, baad mein call ke liye do, calls band karne ke liye nau dabaiye.",
-      "audio": null,
+      "id": "receivable_english",
+      "language": "en",
+      "script": "Hello Meera Iyer. This is an automated reminder call from Demo Merchant. Your invoice inv oh seven eight for one lakh forty one thousand nine hundred twenty two rupees has been pending for nine days. We have sent a payment link on WhatsApp. To confirm a payment date press one, to be called back later press two, and to stop these calls press nine.",
+      "audio": "/voice/receivable_english.wav",
       "validated": true
     },
     {
-      "id": "receivable_hindi",
-      "language": "hi",
-      "script": "Namaste Rohan Sharma ji. Main Demo Merchant ki taraf se ek automated reminder call kar raha hoon. Aapka invoice inv_012, amount chhattis hazaar rupees, chaudah din se pending hai. Payment ke liye humne aapko WhatsApp par link bheja hai. Payment date confirm karne ke liye ek dabaiye, baad mein call ke liye do, aur aage calls band karne ke liye nau dabaiye.",
-      "audio": null,
+      "id": "receivable_hinglish",
+      "language": "hinglish",
+      "script": "Namaste Meera Iyer ji. Yeh Demo Merchant ki taraf se automated reminder call hai. Aapka invoice inv oh seven eight, amount one lakh forty one thousand nine hundred twenty two rupees, nine din se pending hai. Payment link WhatsApp par bhej diya hai. Date confirm karne ke liye ek dabaiye, baad mein call ke liye do, calls band karne ke liye nau dabaiye.",
+      "audio": "/voice/receivable_hinglish.wav",
       "validated": true
     }
   ]

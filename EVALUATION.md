@@ -77,13 +77,16 @@ G07 (Risk hold), G10 (Stopping rule), G11 (Ladder order) blocked nothing. That i
 | 3 | 23 | Rs 34.50 | voice x23 |
 | 4 | 34 | Rs 1,700.00 | human x34 |
 
-Message bodies from the LLM: 0. From the deterministic fallback: 688.
+Message bodies from the LLM: 469. From the deterministic fallback: 219.
 
 Fallback reasons:
 
-- `NO_API_KEY` x688
+- `PROVIDER_ERROR:RateLimitError` x117
+- `MISSING_TOKEN:amount` x78
+- `TOO_LONG:161>160` x12
+- `MISSING_OPTOUT_INSTRUCTION` x12
 
-Live Razorpay test-mode payment links minted: 0. The rest are simulated and flagged as such in the database, so no chart implies more live integration than there is.
+Live Razorpay test-mode payment links minted: 10. The rest are simulated and flagged as such in the database, so no chart implies more live integration than there is.
 
 ## Honest exception list
 

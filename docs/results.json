@@ -457,12 +457,15 @@
         }
       }
     ],
-    "messages_from_llm": 0,
-    "messages_from_fallback": 688,
+    "messages_from_llm": 469,
+    "messages_from_fallback": 219,
     "fallback_reasons": {
-      "NO_API_KEY": 688
+      "MISSING_TOKEN:amount": 78,
+      "PROVIDER_ERROR:RateLimitError": 117,
+      "TOO_LONG:161>160": 12,
+      "MISSING_OPTOUT_INSTRUCTION": 12
     },
-    "real_payment_links": 0
+    "real_payment_links": 10
   },
   "exceptions": [
     {
