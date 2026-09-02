@@ -9,9 +9,17 @@ import { CaseLink, Card, Failed, Loading, Page, Pill } from "@/components/ui";
 const STATES = ["", "RECOVERED", "EXHAUSTED", "CLOSED"];
 const CLASSES = [
   "", "AUTO_RETRY", "RETRY_TIMED", "SWITCH_METHOD", "NUDGE_CUSTOMER",
-  "RECEIVABLE_CHASE", "MANUAL_REVIEW", "DEAD",
+  "CHECKOUT_ABANDONED", "MANDATE_REPAIR", "RECEIVABLE_CHASE", "MANUAL_REVIEW",
+  "DEAD",
 ];
-const GATES = ["", "G01", "G02", "G03", "G04", "G05", "G06", "G08", "G09", "G11"];
+
+// All eleven, including the two that never fire. An empty result for G07 or
+// G10 is the answer to "did the backstops ever catch anything?", and leaving
+// them out of the filter would hide the question.
+const GATES = [
+  "", "G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09", "G10",
+  "G11",
+];
 
 export default function Cases() {
   const [rows, setRows] = useState<CaseRow[]>([]);

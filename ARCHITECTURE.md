@@ -116,6 +116,18 @@ branch, so a risk-blocked or already-settled case cannot fall through into a
 messaging campaign whatever else is true about it. Full table in
 [docs/decision-table.md](docs/decision-table.md).
 
+Two of the ten rules are product decisions rather than lookups:
+
+- **`MANDATE_REPAIR`** — a revoked mandate cannot be *retried*, so every attempt
+  against it is guaranteed to fail and would spend one of the case's three
+  attempts proving it. But re-authorisation is a different action, not the
+  absence of one. Classifying this as `DEAD` was the conservative reading and
+  it wrote off recoverable subscription revenue.
+- **`CHECKOUT_ABANDONED`** — the only class with no error taxonomy to route on,
+  because nothing was ever attempted. No failure to diagnose and nothing to
+  retry, so it gets a shorter two-touch ladder. Somebody who ignored two
+  reminders about a cart they abandoned is not a debtor.
+
 ---
 
 ## The policy engine
@@ -159,6 +171,10 @@ the audit trail.
 | 2 | SMS + link | ₹0.20 | no response at tier 1 |
 | 3 | Hinglish voice call | ₹1.50 | tiers 1–2 spent, amount ≥ ₹2,000, voice consent on file |
 | 4 | Human queue | ₹50.00 | risk-blocked, or everything else exhausted |
+
+`MANDATE_REPAIR` never touches tier 0: a silent retry against a dead
+authorisation is guaranteed to fail. `CHECKOUT_ABANDONED` stops after tier 2
+rather than running the full ladder.
 
 The ladder proposes; the policy engine disposes. `get_next_action` returns an
 *intent* and nothing is sent until all eleven gates pass.

@@ -45,11 +45,19 @@ export function istTime(iso: string | null | undefined): string {
   });
 }
 
+/**
+ * One entry per recovery class. A class missing from here renders as an
+ * unstyled pill, which is how CHECKOUT_ABANDONED and MANDATE_REPAIR shipped
+ * invisible when they were added to the backend — the list is the reason to
+ * keep it beside the enum in `app/core/classifier.py`.
+ */
 export const CLASS_COLORS: Record<string, string> = {
   AUTO_RETRY: "text-sky-400 border-sky-500/30 bg-sky-500/10",
   RETRY_TIMED: "text-violet-400 border-violet-500/30 bg-violet-500/10",
   SWITCH_METHOD: "text-amber-400 border-amber-500/30 bg-amber-500/10",
   NUDGE_CUSTOMER: "text-teal-400 border-teal-500/30 bg-teal-500/10",
+  CHECKOUT_ABANDONED: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
+  MANDATE_REPAIR: "text-fuchsia-400 border-fuchsia-500/30 bg-fuchsia-500/10",
   RECEIVABLE_CHASE: "text-indigo-400 border-indigo-500/30 bg-indigo-500/10",
   MANUAL_REVIEW: "text-orange-400 border-orange-500/30 bg-orange-500/10",
   DEAD: "text-zinc-500 border-zinc-600/30 bg-zinc-600/10",

@@ -8,9 +8,9 @@ rows.
 
 The dataset is shaped like real Razorpay traffic — the error taxonomy is theirs
 (`error_source` / `error_step` / `error_reason`), not one we invented — and it
-carries six deliberately planted traps. Each trap exists to make exactly one
-guardrail fire during the demo. A guardrail that never fires is a guardrail
-nobody believes.
+carries eight deliberately planted traps. Each exists to make exactly one
+guardrail or rule fire during the demo. A guardrail that never fires is a
+guardrail nobody believes.
 """
 
 import hashlib
