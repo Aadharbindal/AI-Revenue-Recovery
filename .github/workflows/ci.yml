@@ -43,7 +43,7 @@ jobs:
       # the run non-deterministic, EVALUATION.md drifts and this catches it.
       - name: Results are reproducible
         run: |
-          git diff --exit-code -- EVALUATION.md docs/results.json \
+          git diff --exit-code -- EVALUATION.md docs/data/results.json \
             || (echo "::error::Re-running the batch changed the committed results. Either the run is non-deterministic, or EVALUATION.md was not regenerated after a change." && exit 1)
 
   frontend:

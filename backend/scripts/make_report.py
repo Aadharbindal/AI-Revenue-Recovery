@@ -26,7 +26,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=os.path.join(REPO_ROOT, "EVALUATION.md"))
     parser.add_argument("--json", dest="json_out",
-                        default=os.path.join(REPO_ROOT, "docs", "results.json"))
+                        default=os.path.join(REPO_ROOT, "docs", "data", "results.json"))
     parser.add_argument("--env-out",
                         default=os.path.join(REPO_ROOT, "docs",
                                              "run-environment.md"))

@@ -85,7 +85,7 @@ python backend/scripts/seed.py           # build demo.db from seed 42
 python backend/scripts/run_batch.py      # run the 7-day simulation
 python backend/scripts/make_report.py    # regenerate EVALUATION.md
 python backend/scripts/verify_ledger.py  # recompute the audit chain
-python backend/scripts/render_voice.py   # render the Hinglish voice scripts
+python backend/scripts/render_voice.py   # render the voice scripts to audio
 python -m pytest backend/tests -q        # tests
 python -m uvicorn app.main:app --port 8000
 cd frontend && npm run dev
@@ -100,7 +100,8 @@ numbers below without running anything.
 
 ## Results
 
-Full methodology in **[EVALUATION.md](EVALUATION.md)**. Headline:
+Full methodology in **[EVALUATION.md](EVALUATION.md)**, which CI regenerates on
+every push and fails if a single figure drifts. Headline:
 
 | | |
 | --- | --- |
@@ -136,6 +137,12 @@ the issuer-health detector, the LLM validator, the hash-chained audit ledger,
 the treatment/control assignment, the statistics, the Razorpay test-mode
 Payment Links API integration, the model calls (469 of the 688 message bodies
 were written by one), and the rendered voice audio.
+
+Which of those actually ran on the committed batch — how many bodies the model
+wrote, how many payment links were minted live — is recorded in
+[docs/run-environment.md](docs/run-environment.md). That file is deliberately
+*not* reproducible: it depends on which services answered, and the recovery
+statistics do not depend on it at all.
 
 **Simulated:** whether a customer paid. Outcomes come from a seeded oracle whose
 base rates are written down and justified in
@@ -226,18 +233,43 @@ clock, same numbers, on any machine, at any hour.
 ## Repository
 
 ```
-backend/app/core/      clock, classifier, detector, ladder, policy, orchestrator, ledger
-backend/app/llm/       prompts, validator, deterministic fallbacks
-backend/app/sim/       dataset generator, outcome oracle
-backend/app/analytics/ experiment statistics, report rendering
-backend/app/api/       FastAPI routers
-backend/tests/         157 tests, including the API and the validator
-frontend/src/app/      command centre, live run, cases, timeline, guardrails,
-                       experiment, exceptions, audit, LLM validator
-docs/                  decision table, guardrails, assumptions, future scope
-2AM.md                 what broke, and how it was found
+README.md                  you are here
+ARCHITECTURE.md            how the pieces fit, and why the clock holds it up
+EVALUATION.md              the numbers — regenerated and checked by CI
+2AM.md                     ten real bugs, and how each was found
+
+backend/
+  app/
+    core/                  the agent
+      clock.py             the fixed simulation clock everything else reads
+      classifier.py        failure -> recovery class, a decision table
+      detector.py          issuer health, z-scored per issuer
+      ladder.py            the cheapest useful next step
+      policy.py            the eleven gates
+      orchestrator.py      the tick loop
+      ledger.py            hash-chained audit trail
+    llm/                   prompts, validator, deterministic fallbacks
+    sim/                   dataset generator, outcome oracle (the agent cannot read it)
+    analytics/             experiment statistics, report rendering
+    api/                   FastAPI routers
+    models.py  db.py       schema and session
+  scripts/                 seed, run-batch, report, verify-ledger, render-voice
+  tests/                   158 tests
+  demo.db                  committed and pre-seeded, so a clone shows these numbers
+
+frontend/src/
+  app/                     command centre, live run, cases, case timeline,
+                           guardrails, experiment, exceptions, audit, validator
+  components/              charts, shared primitives, icons
+  lib/                     typed API client, formatting
+
+docs/                      README.md indexes the rest
+  data/                    the same results as JSON
+scripts/                   start-backend.ps1, for Windows without Make
 ```
 
 Stack: FastAPI · SQLAlchemy · Pydantic v2 · SQLite · Next.js 16 · TypeScript ·
 Tailwind. SQLite because the dataset is synthetic, deterministic and small, and
 a single committed file gives a judge the exact numbers with nothing to install.
+
+Full documentation index: [docs/README.md](docs/README.md).
