@@ -181,17 +181,106 @@ def _pct(x) -> str:
     return f"{(x or 0) * 100:.1f}%"
 
 
+def render_run_environment(report: Dict) -> str:
+    """
+    The half of the numbers that depend on which services answered.
+
+    These are deliberately kept out of EVALUATION.md. Message provenance and
+    live link counts are a property of the machine that ran the batch, not of
+    the seed — run it with an API key and 469 bodies come from the model, run
+    it without one and 688 come from templates. Both are correct. Mixing them
+    into the reproducible report made `make demo` produce a file that did not
+    match the committed one, and CI was right to fail on it.
+    """
+    d = report["delivery"]
+    lines = [
+        "# Run environment",
+        "",
+        "Everything here depends on what was configured when the batch ran, so "
+        "unlike `EVALUATION.md` it is **not** expected to reproduce. The "
+        "recovery statistics do not depend on any of it: the outcome oracle is "
+        "seeded, and a message that fell back to a template recovers exactly "
+        "as often as one the model wrote.",
+        "",
+        "This file records the run that produced the committed database.",
+        "",
+        "## Where message bodies came from",
+        "",
+        "| Source | Count |",
+        "| --- | --- |",
+        f"| Written by the model | {d['messages_from_llm']} |",
+        f"| Deterministic template | {d['messages_from_fallback']} |",
+        "",
+    ]
+
+    if d["fallback_reasons"]:
+        refused = {k: v for k, v in d["fallback_reasons"].items()
+                   if not k.startswith("PROVIDER_ERROR")}
+        unavailable = {k: v for k, v in d["fallback_reasons"].items()
+                       if k.startswith("PROVIDER_ERROR")}
+
+        if refused:
+            lines += [
+                "### Drafts the validator refused",
+                "",
+                "The guardrail doing its job against a live model, not a fixture.",
+                "",
+            ]
+            for reason, n in sorted(refused.items(), key=lambda kv: -kv[1]):
+                lines.append(f"- `{reason}` x{n}")
+            lines.append("")
+
+        if unavailable:
+            lines += [
+                "### Calls the provider did not answer",
+                "",
+                "A free tier rate-limits. The batch finished anyway, which is "
+                "the entire point of having a deterministic fallback.",
+                "",
+            ]
+            for reason, n in sorted(unavailable.items(), key=lambda kv: -kv[1]):
+                lines.append(f"- `{reason}` x{n}")
+            lines.append("")
+
+    lines += [
+        "## Payment links",
+        "",
+        f"Live Razorpay test-mode links minted: **{d['real_payment_links']}**. "
+        "Every other link is simulated and flagged as such in the database, so "
+        "nothing on the dashboard implies more live integration than there is.",
+        "",
+        "## Delivery by tier",
+        "",
+        "| Tier | Sent | Spend | Channels |",
+        "| --- | --- | --- | --- |",
+    ]
+    for row in d["by_tier"]:
+        channels = ", ".join(f"{k} x{v}" for k, v in sorted(row["channels"].items()))
+        lines.append(
+            f"| {row['tier']} | {row['sent']} | {_rs(row['spend_paise'])} | "
+            f"{channels} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def render_markdown(report: Dict) -> str:
     e = report["experiment"]
     g = report["guardrails"]
-    d = report["delivery"]
     run = report["run"]
 
     lines = [
         "# EVALUATION",
         "",
         "Every number on this page is produced by `make report` from the "
-        "committed database. Re-run it and you get this file back.",
+        "committed database. Re-run it and you get this file back — CI asserts "
+        "exactly that on every push.",
+        "",
+        "Numbers that depend on which services were reachable — how many message "
+        "bodies the model wrote, how many payment links were minted live — are "
+        "in [docs/run-environment.md](docs/run-environment.md) instead, because "
+        "they are a property of the machine that ran the batch rather than of "
+        "the seed.",
         "",
         "## What is measured, and what is simulated",
         "",
@@ -302,37 +391,6 @@ def render_markdown(report: Dict) -> str:
         ]
 
     lines += [
-        "",
-        "## Delivery",
-        "",
-        "| Tier | Sent | Spend | Channels |",
-        "| --- | --- | --- | --- |",
-    ]
-    for row in d["by_tier"]:
-        channels = ", ".join(f"{k} x{v}" for k, v in sorted(row["channels"].items()))
-        lines.append(
-            f"| {row['tier']} | {row['sent']} | {_rs(row['spend_paise'])} | "
-            f"{channels} |"
-        )
-
-    lines += [
-        "",
-        f"Message bodies from the LLM: {d['messages_from_llm']}. "
-        f"From the deterministic fallback: {d['messages_from_fallback']}.",
-    ]
-    if d["fallback_reasons"]:
-        lines.append("")
-        lines.append("Fallback reasons:")
-        lines.append("")
-        for reason, n in sorted(d["fallback_reasons"].items(),
-                                key=lambda kv: -kv[1]):
-            lines.append(f"- `{reason}` x{n}")
-
-    lines += [
-        "",
-        f"Live Razorpay test-mode payment links minted: {d['real_payment_links']}. "
-        "The rest are simulated and flagged as such in the database, so no chart "
-        "implies more live integration than there is.",
         "",
         "## Honest exception list",
         "",

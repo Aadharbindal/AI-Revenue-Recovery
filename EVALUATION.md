@@ -1,6 +1,8 @@
 # EVALUATION
 
-Every number on this page is produced by `make report` from the committed database. Re-run it and you get this file back.
+Every number on this page is produced by `make report` from the committed database. Re-run it and you get this file back — CI asserts exactly that on every push.
+
+Numbers that depend on which services were reachable — how many message bodies the model wrote, how many payment links were minted live — are in [docs/run-environment.md](docs/run-environment.md) instead, because they are a property of the machine that ran the batch rather than of the seed.
 
 ## What is measured, and what is simulated
 
@@ -66,27 +68,6 @@ Aggregate lift can hide a class that outreach is actively hurting.
 | G11 Ladder order | 0 | 0 | Rs 0.00 | Rs 0.00 |
 
 G07 (Risk hold), G10 (Stopping rule), G11 (Ladder order) blocked nothing. That is the expected result, not a missing feature: the ladder never proposes the action those gates exist to refuse. They are the backstop that would catch a bug upstream, and if they ever fire there is one.
-
-## Delivery
-
-| Tier | Sent | Spend | Channels |
-| --- | --- | --- | --- |
-| 0 | 261 | Rs 0.00 | silent x261 |
-| 1 | 370 | Rs 111.00 | email x78, whatsapp x292 |
-| 2 | 304 | Rs 65.30 | sms x259, whatsapp x45 |
-| 3 | 23 | Rs 34.50 | voice x23 |
-| 4 | 34 | Rs 1,700.00 | human x34 |
-
-Message bodies from the LLM: 469. From the deterministic fallback: 219.
-
-Fallback reasons:
-
-- `PROVIDER_ERROR:RateLimitError` x117
-- `MISSING_TOKEN:amount` x78
-- `TOO_LONG:161>160` x12
-- `MISSING_OPTOUT_INSTRUCTION` x12
-
-Live Razorpay test-mode payment links minted: 10. The rest are simulated and flagged as such in the database, so no chart implies more live integration than there is.
 
 ## Honest exception list
 

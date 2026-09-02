@@ -412,61 +412,6 @@
     "total_spend_avoided_paise": 41050,
     "total_compliance_avoided_paise": 58350000
   },
-  "delivery": {
-    "by_tier": [
-      {
-        "tier": 0,
-        "sent": 261,
-        "spend_paise": 0,
-        "channels": {
-          "silent": 261
-        }
-      },
-      {
-        "tier": 1,
-        "sent": 370,
-        "spend_paise": 11100,
-        "channels": {
-          "whatsapp": 292,
-          "email": 78
-        }
-      },
-      {
-        "tier": 2,
-        "sent": 304,
-        "spend_paise": 6530,
-        "channels": {
-          "whatsapp": 45,
-          "sms": 259
-        }
-      },
-      {
-        "tier": 3,
-        "sent": 23,
-        "spend_paise": 3450,
-        "channels": {
-          "voice": 23
-        }
-      },
-      {
-        "tier": 4,
-        "sent": 34,
-        "spend_paise": 170000,
-        "channels": {
-          "human": 34
-        }
-      }
-    ],
-    "messages_from_llm": 469,
-    "messages_from_fallback": 219,
-    "fallback_reasons": {
-      "MISSING_TOKEN:amount": 78,
-      "PROVIDER_ERROR:RateLimitError": 117,
-      "TOO_LONG:161>160": 12,
-      "MISSING_OPTOUT_INSTRUCTION": 12
-    },
-    "real_payment_links": 10
-  },
   "exceptions": [
     {
       "reason": "Still open when the 7-day observation window closed",
