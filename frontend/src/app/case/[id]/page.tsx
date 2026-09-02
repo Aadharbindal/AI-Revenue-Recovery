@@ -131,7 +131,11 @@ export default function CaseTimeline() {
             ) : (
               <div className="space-y-4">
                 {actions.map((a) => (
-                  <ActionBlock key={a.action_id} action={a} />
+                  <ActionBlock
+                    key={a.action_id}
+                    action={a}
+                    language={String(customer?.language_pref ?? "en")}
+                  />
                 ))}
               </div>
             )}
@@ -219,7 +223,13 @@ function wasNeverAsked(reason: string): boolean {
   return NEVER_ASKED.includes(reason) || reason.startsWith("PROVIDER_ERROR");
 }
 
-function ActionBlock({ action }: { action: ActionRow }) {
+function ActionBlock({
+  action,
+  language,
+}: {
+  action: ActionRow;
+  language: string;
+}) {
   const blocked = action.status === "BLOCKED";
   const trail = action.gate_decisions_json ?? [];
   const refusals = trail.filter((g) => !g.allowed);
@@ -290,7 +300,7 @@ function ActionBlock({ action }: { action: ActionRow }) {
         generated, validated and placed by the batch either way.
       */}
       {action.channel === "voice" && action.message_body && (
-        <VoiceScript body={action.message_body} />
+        <VoiceScript body={action.message_body} language={language} />
       )}
 
       {action.channel !== "voice" && action.message_body && (
@@ -348,20 +358,24 @@ function ActionBlock({ action }: { action: ActionRow }) {
   );
 }
 
-function VoiceScript({ body }: { body: string }) {
-  const [audioOk, setAudioOk] = useState(true);
+// Hindi and Hinglish scripts are both romanised and read by the same Hindi
+// voice, so they share a clip. Playing the English recording under a Hinglish
+// script would have the page say one thing and the speaker say another.
+const VOICE_CLIP: Record<string, string> = {
+  en: "/voice/receivable_english.wav",
+  hi: "/voice/receivable_hinglish.wav",
+  hinglish: "/voice/receivable_hinglish.wav",
+};
 
-  // The rendered clip is one recording of this script, not this exact case's
-  // — every Tier-3 call shares the template and differs only in the values
-  // substituted into it. English by default because that is what the demo
-  // plays; `make voice` also renders the Hinglish take.
-  const src = "/voice/receivable_english.wav";
+function VoiceScript({ body, language }: { body: string; language: string }) {
+  const [audioOk, setAudioOk] = useState(true);
+  const src = VOICE_CLIP[language] ?? VOICE_CLIP.en;
 
   return (
     <div className="mt-3 rounded-lg border border-[var(--line)] bg-[var(--surface-inset)] p-4">
       <div className="flex items-center gap-2 mb-3">
         <Pill className="text-[var(--warn)] border-[var(--warn)]/30 bg-[var(--warn)]/10">
-          Voice script
+          Voice script · {language}
         </Pill>
         <span className="text-[11px] text-[var(--ink-4)]">
           {body.length} of 400 characters
@@ -391,10 +405,16 @@ function VoiceScript({ body }: { body: string }) {
       <Callout>
         The script passes the same validator a text message does, plus two rules
         only calls have: it must say it is automated, and it must offer a way
-        out. The figures above were substituted by Python from this case; the
-        template the model wrote contained no digits at all, because a draft
-        containing one is rejected. The recording spells them out, which is
-        what a caller would actually hear.
+        out. Coercive language is refused in Hindi as well as English — a
+        message threatening <span className="font-mono">kanooni karyavahi</span>{" "}
+        is exactly as much of a problem as one threatening legal action.
+        <br />
+        <br />
+        The figures above were substituted by Python from this case; the
+        template contained no digits at all, because a draft containing one is
+        rejected. The recording is of this template with the same values spelled
+        as words, which is what a caller would hear — it is one rendering of the
+        script, not a recording of this particular call.
       </Callout>
     </div>
   );
