@@ -151,6 +151,87 @@ export function ShieldAlertIcon(props: IconProps) {
   );
 }
 
+/** Filled, because a play triangle reads as a button and an outline does not. */
+export function PlayIcon({ className, size = 18 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M8 5.2a1 1 0 0 1 1.53-.85l9.1 6.8a1 1 0 0 1 0 1.7l-9.1 6.8A1 1 0 0 1 8 18.8Z" />
+    </svg>
+  );
+}
+
+export function PauseIcon({ className, size = 18 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="6.5" y="4.5" width="4" height="15" rx="1.4" />
+      <rect x="13.5" y="4.5" width="4" height="15" rx="1.4" />
+    </svg>
+  );
+}
+
+export function VolumeIcon({ className, size = 18, muted = false }: IconProps & {
+  muted?: boolean;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M4 9.5h3.2L12 5.4v13.2L7.2 14.5H4Z" fill="currentColor" stroke="none" />
+      {muted ? (
+        <>
+          <path d="M16.5 9.5l4 5" />
+          <path d="M20.5 9.5l-4 5" />
+        </>
+      ) : (
+        <>
+          <path d="M15.6 9.4a3.6 3.6 0 0 1 0 5.2" />
+          <path d="M18.3 7.2a7 7 0 0 1 0 9.6" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+export function DotsIcon({ className, size = 18 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="5.5" r="1.7" />
+      <circle cx="12" cy="12" r="1.7" />
+      <circle cx="12" cy="18.5" r="1.7" />
+    </svg>
+  );
+}
+
 export function InfoIcon(props: IconProps) {
   return (
     <Svg {...props}>

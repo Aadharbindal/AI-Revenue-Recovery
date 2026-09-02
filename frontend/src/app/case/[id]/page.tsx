@@ -15,6 +15,7 @@ import {
   Callout, Card, Failed, Loading, Page, Pill,
 } from "@/components/ui";
 import { AlertIcon, CasesIcon, LedgerIcon } from "@/components/icons";
+import AudioPlayer from "@/components/AudioPlayer";
 
 /**
  * One case, from the failed payment to the outcome.
@@ -378,12 +379,7 @@ function VoiceScript({ body }: { body: string }) {
       </div>
 
       {audioOk ? (
-        <audio
-          controls
-          src={src}
-          onError={() => setAudioOk(false)}
-          className="w-full mt-3.5 h-9"
-        />
+        <AudioPlayer src={src} onError={() => setAudioOk(false)} />
       ) : (
         <p className="text-[12px] text-[var(--ink-4)] mt-3.5 leading-relaxed">
           No audio rendered — <span className="font-mono">SARVAM_API_KEY</span>{" "}
@@ -395,8 +391,10 @@ function VoiceScript({ body }: { body: string }) {
       <Callout>
         The script passes the same validator a text message does, plus two rules
         only calls have: it must say it is automated, and it must offer a way
-        out. Every number in it is spelled as a word, because the validator
-        rejects a draft containing a digit.
+        out. The figures above were substituted by Python from this case; the
+        template the model wrote contained no digits at all, because a draft
+        containing one is rejected. The recording spells them out, which is
+        what a caller would actually hear.
       </Callout>
     </div>
   );
