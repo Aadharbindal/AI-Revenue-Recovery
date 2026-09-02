@@ -5,7 +5,12 @@ import { useEffect, useState } from "react";
 
 import { fetchDelivery, fetchGuardrails, type DeliveryReport, type GuardrailReport } from "@/lib/api";
 import { CHANNEL_LABELS, rupees, rupeesShort } from "@/lib/format";
-import { Bar, Card, Failed, Loading, Note, Page, Pill, Stat } from "@/components/ui";
+import {
+  Bar, Callout, Card, Failed, Loading, Page, Pill, Stat,
+} from "@/components/ui";
+import {
+  ChartUpIcon, RupeeIcon, ShieldAlertIcon, ShieldIcon, TerminalIcon,
+} from "@/components/icons";
 
 const GATE_PURPOSE: Record<string, string> = {
   G01: "Never contact someone who revoked consent or sits on the DND registry",
@@ -40,6 +45,7 @@ export default function Guardrails() {
 
   return (
     <Page
+      crumbs={[{ label: "RecoverOS" }, { label: "Guardrails", accent: true }]}
       title="Guardrails"
       subtitle="Eleven gates, evaluated in order on every proposed action. What they refused, and what that was worth."
     >
@@ -48,21 +54,29 @@ export default function Guardrails() {
           label="Actions refused"
           value={g.total_blocks.toLocaleString("en-IN")}
           tone="warn"
+          icon={<ShieldAlertIcon size={17} />}
           sub={`Fired by ${g.gates.filter((x) => x.blocks > 0).length} of the 11 gates`}
         />
         <Stat
           label="Spend avoided"
           value={rupees(g.total_spend_avoided_paise)}
+          icon={<RupeeIcon size={17} />}
           sub="Messages that would have gone out and been wasted"
         />
         <Stat
           label="Compliance exposure avoided"
           value={rupeesShort(g.total_compliance_avoided_paise)}
+          tone="good"
+          icon={<ShieldIcon size={17} />}
           sub="Priced at ₹500 per avoided consent, DND, quiet-hours or frequency violation"
         />
       </div>
 
-      <Card title="Every gate, including the quiet ones">
+      <Card
+        title="Every gate, including the quiet ones"
+        hint="Evaluated in order on every proposed action"
+        icon={<ShieldIcon size={18} />}
+      >
         <div className="space-y-4">
           {g.gates.map((gate) => (
             <div key={gate.gate} className="border-b border-[var(--line)] pb-4 last:border-0">
@@ -100,18 +114,22 @@ export default function Guardrails() {
         </div>
 
         {silent.length > 0 && (
-          <Note>
+          <Callout>
             {silent.map((s) => `${s.gate} (${s.name})`).join(", ")} refused
             nothing. That is the expected result, not a missing feature: the
             ladder never proposes the action those gates exist to prevent. They
             are the backstop that would catch a bug upstream — if one ever
             fires, there is one.
-          </Note>
+          </Callout>
         )}
       </Card>
 
       <div className="grid lg:grid-cols-2 gap-6 mt-6">
-        <Card title="What went out" hint="Cheapest tier first, no skipping">
+        <Card
+          title="What went out"
+          hint="Cheapest tier first, no skipping"
+          icon={<ChartUpIcon size={18} />}
+        >
           <div className="space-y-3">
             {d.by_tier.map((tier) => (
               <div key={tier.tier} className="flex items-center gap-4 text-sm">
@@ -137,6 +155,8 @@ export default function Guardrails() {
         <Card
           title="Where message bodies came from"
           hint="The model drafts; the code decides and fills in every number"
+          icon={<TerminalIcon size={18} />}
+          tone="muted"
         >
           <div className="grid grid-cols-2 gap-4 mb-4">
             <Stat label="From the LLM" value={String(d.messages_from_llm)} />
@@ -156,16 +176,16 @@ export default function Guardrails() {
                 ))}
             </div>
           )}
-          <Note>
+          <Callout>
             {d.messages_from_llm === 0
               ? "No LLM provider is configured in this deployment, so every body came from a deterministic template. That is the honest state rather than a hidden one — and it is exactly what happens when the provider is down mid-batch."
               : "Templates are cached per (class, tier, language), so a batch of hundreds of cases costs on the order of eighteen model calls. Any draft containing a literal digit is rejected before it can become a message."}
-          </Note>
-          <Note>
+          </Callout>
+          <Callout>
             {d.real_payment_links} live Razorpay test-mode links were minted;
             the rest are simulated and flagged as such in the database, so no
             chart implies more live integration than there is.
-          </Note>
+          </Callout>
         </Card>
       </div>
     </Page>

@@ -4,7 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { streamBatch, type BatchEvent } from "@/lib/api";
 import { CHANNEL_LABELS, istTime, rupeesShort } from "@/lib/format";
-import { Bar, Card, Note, Page, Pill, Stat } from "@/components/ui";
+import { Bar, Callout, Card, Page, Pill, Stat } from "@/components/ui";
+import {
+  ActivityIcon, RupeeIcon, ShieldAlertIcon, TerminalIcon, TrendingUpIcon,
+} from "@/components/icons";
 
 interface Counters {
   tick: number;
@@ -130,6 +133,7 @@ export default function LiveBatch() {
 
   return (
     <Page
+      crumbs={[{ label: "RecoverOS" }, { label: "Live Batch", accent: true }]}
       title="Live Batch"
       subtitle="Seven simulated days in two-hour ticks. Watch the ladder escalate and the guardrails refuse."
       actions={
@@ -164,17 +168,29 @@ export default function LiveBatch() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Stat label="Sent" value={String(counters.sent)} tone="accent" />
+        <Stat
+          label="Sent"
+          value={String(counters.sent)}
+          tone="accent"
+          icon={<ActivityIcon size={17} />}
+        />
         <Stat
           label="Blocked by a gate"
           value={String(counters.blocked)}
           tone="warn"
+          icon={<ShieldAlertIcon size={17} />}
         />
-        <Stat label="Recovered" value={String(counters.recovered)} tone="good" />
+        <Stat
+          label="Recovered"
+          value={String(counters.recovered)}
+          tone="good"
+          icon={<TrendingUpIcon size={17} />}
+        />
         <Stat
           label="Recovered value"
           value={rupeesShort(counters.recoveredPaise)}
           tone="good"
+          icon={<RupeeIcon size={17} />}
         />
       </div>
 
@@ -186,7 +202,12 @@ export default function LiveBatch() {
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <Card title="Decision feed" className="lg:col-span-2">
+        <Card
+          title="Decision feed"
+          hint="Every send and every refusal, as it happens"
+          icon={<TerminalIcon size={18} />}
+          className="lg:col-span-2"
+        >
           <div className="h-[420px] overflow-y-auto font-mono text-xs space-y-1">
             {feed.length === 0 && (
               <p className="text-[var(--ink-4)]">
@@ -216,7 +237,12 @@ export default function LiveBatch() {
           </div>
         </Card>
 
-        <Card title="Gates firing" hint="Distinct cases refused, by gate">
+        <Card
+          title="Gates firing"
+          hint="Distinct cases refused, by gate"
+          icon={<ShieldAlertIcon size={18} />}
+          tone="warn"
+        >
           {Object.keys(gates).length === 0 ? (
             <p className="text-sm text-[var(--ink-4)]">Nothing refused yet.</p>
           ) : (
@@ -238,16 +264,20 @@ export default function LiveBatch() {
                 ))}
             </div>
           )}
-          <Note>
+          <Callout>
             Each case is counted once per distinct refusal reason, so a case
             held overnight by quiet hours does not inflate the count on every
             tick.
-          </Note>
+          </Callout>
         </Card>
       </div>
 
       {summary && (
-        <Card title="Run summary" className="mt-6">
+        <Card
+          title="Run summary"
+          icon={<ActivityIcon size={18} />}
+          className="mt-6"
+        >
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             <SummaryFigure
               label="Spend"

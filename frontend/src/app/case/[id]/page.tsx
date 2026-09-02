@@ -11,7 +11,10 @@ import {
   istTime,
   rupees,
 } from "@/lib/format";
-import { Card, Failed, Loading, Note, Page, Pill } from "@/components/ui";
+import {
+  Callout, Card, Failed, Loading, Page, Pill,
+} from "@/components/ui";
+import { AlertIcon, CasesIcon, LedgerIcon } from "@/components/icons";
 
 /**
  * One case, from the failed payment to the outcome.
@@ -71,6 +74,8 @@ export default function CaseTimeline() {
             <Card
               title="Why it failed"
               hint="Razorpay's own error taxonomy — the fields the routing decision is built on"
+              icon={<AlertIcon size={18} />}
+              tone="bad"
             >
               <div className="space-y-3">
                 {payments.map((p) => (
@@ -97,18 +102,22 @@ export default function CaseTimeline() {
                   </div>
                 ))}
               </div>
-              <Note>
+              <Callout>
                 <span className="text-[var(--ink-2)]">error_source</span> says whose
                 fault it was and{" "}
                 <span className="text-[var(--ink-2)]">error_step</span> says where it
                 broke. Together they decide recoverability — bank or gateway
                 means retry, customer means nudge, internal risk means do not
                 touch it.
-              </Note>
+              </Callout>
             </Card>
           )}
 
-          <Card title="What happened, in order">
+          <Card
+            title="What happened, in order"
+            hint="Every attempt, with all eleven gate verdicts"
+            icon={<CasesIcon size={18} />}
+          >
             {actions.length === 0 ? (
               <p className="text-sm text-[var(--ink-3)]">
                 No action was ever attempted on this case.
@@ -130,6 +139,8 @@ export default function CaseTimeline() {
           <Card
             title="Raw ledger"
             hint="Every row hash-chained to the one before it"
+            icon={<LedgerIcon size={18} />}
+            tone="muted"
           >
             <div className="space-y-1 font-mono text-xs max-h-96 overflow-y-auto">
               {events.map((e) => (
@@ -153,7 +164,7 @@ export default function CaseTimeline() {
               {c.rule_id && <Field label="Classifier rule" value={c.rule_id} />}
             </dl>
             {c.exception_reason && (
-              <Note>{c.exception_reason}</Note>
+              <Callout>{c.exception_reason}</Callout>
             )}
           </Card>
 
@@ -179,13 +190,13 @@ export default function CaseTimeline() {
                 ))}
               </div>
               {Boolean(customer.opted_out_at) && (
-                <Note>
+                <Callout>
                   This customer opted out on {String(customer.opted_out_at)}.
                   G01 suppresses every channel for them.
-                </Note>
+                </Callout>
               )}
               {Boolean(customer.dnd_registered) && (
-                <Note>Registered on the national DND list — voice is blocked.</Note>
+                <Callout>Registered on the national DND list — voice is blocked.</Callout>
               )}
             </Card>
           )}
@@ -324,11 +335,11 @@ function ActionBlock({ action }: { action: ActionRow }) {
             )}
           </div>
           {action.llm_rejected_reason && (
-            <Note>
+            <Callout>
               {wasNeverAsked(action.llm_rejected_reason)
                 ? "No LLM provider is configured in this deployment, so no model was asked and this deterministic template was used. Worth being precise about: nothing was rejected here, because nothing was drafted."
                 : "The model's draft failed validation and this deterministic template was used instead. The batch did not stop, and no number the model wrote reached anybody."}
-            </Note>
+            </Callout>
           )}
         </div>
       )}
@@ -376,12 +387,12 @@ function VoiceScript({ body }: { body: string }) {
         </p>
       )}
 
-      <Note>
+      <Callout>
         The script passes the same validator a text message does, plus two rules
         only calls have: it must say it is automated, and it must offer a way
         out. Every number in it is spelled as a word, because the validator
         rejects a draft containing a digit.
-      </Note>
+      </Callout>
     </div>
   );
 }

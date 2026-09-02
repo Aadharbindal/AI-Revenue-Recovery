@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 
 import { fetchExperiment, type ClassRow, type ExperimentResult } from "@/lib/api";
 import { CLASS_COLORS, pct, pp, rupees, rupeesShort } from "@/lib/format";
-import { Bar, Card, Failed, Loading, Note, Page, Pill, Stat } from "@/components/ui";
+import {
+  Bar, Callout, Card, Failed, Loading, Page, Pill, Stat,
+} from "@/components/ui";
+import {
+  ChartUpIcon, FlaskIcon, RupeeIcon, TrendingUpIcon,
+} from "@/components/icons";
 
 export default function Experiment() {
   const [data, setData] = useState<{
@@ -24,6 +29,7 @@ export default function Experiment() {
 
   return (
     <Page
+      crumbs={[{ label: "RecoverOS" }, { label: "Experiment", accent: true }]}
       title="Experiment"
       subtitle="20% of cases are held out and never contacted. Only the difference against them belongs to the agent."
     >
@@ -32,29 +38,39 @@ export default function Experiment() {
           label="Treatment"
           value={pct(e.treatment_rate)}
           tone="accent"
+          icon={<ChartUpIcon size={17} />}
           sub={`${e.treatment_recovered} of ${e.treatment_n} recovered`}
         />
         <Stat
           label="Control"
           value={pct(e.control_rate)}
+          tone="muted"
+          icon={<FlaskIcon size={17} />}
           sub={`${e.control_recovered} of ${e.control_n} came back untouched`}
         />
         <Stat
           label="Net lift"
           value={pp(e.net_lift)}
+          icon={<TrendingUpIcon size={17} />}
           tone={e.is_significant ? "good" : "warn"}
           sub={`95% CI ${(e.ci_lower * 100).toFixed(1)} to ${(e.ci_upper * 100).toFixed(1)}`}
         />
         <Stat
           label="Incremental value"
           value={rupeesShort(e.value_incremental_paise)}
+          icon={<RupeeIcon size={17} />}
           tone="good"
           sub={`on ${rupees(e.intervention_cost_paise)} of messaging`}
         />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <Card title="Is the lift real?">
+        <Card
+          title="Is the lift real?"
+          hint="A point estimate without an interval is a guess wearing a suit"
+          icon={<FlaskIcon size={18} />}
+          tone={e.is_significant ? "good" : "warn"}
+        >
           <div className="mb-5">
             <div className="flex justify-between text-sm mb-1.5">
               <span className="text-[var(--ink-2)]">Treatment</span>
@@ -97,7 +113,11 @@ export default function Experiment() {
           </div>
         </Card>
 
-        <Card title="Economics">
+        <Card
+          title="Economics"
+          hint="Incremental, not gross - the control arm decides what we may claim"
+          icon={<RupeeIcon size={18} />}
+        >
           <dl className="space-y-3.5 text-sm">
             <Row label="Amount at risk" value={rupees(e.amount_at_risk_paise, 0)} />
             <Row
@@ -125,17 +145,22 @@ export default function Experiment() {
             />
           </dl>
 
-          <Note>
+          <Callout>
             The ROI figure counts variable messaging cost only — it excludes
             platform, engineering and support load, so treat it as an upper
             bound rather than a business case. The break-even line is the more
             useful number: it is how small the lift could have been before the
             campaign stopped paying for its own messages.
-          </Note>
+          </Callout>
         </Card>
       </div>
 
-      <Card title="By recovery class" className="mt-6">
+      <Card
+        title="By recovery class"
+        hint="Aggregate lift can hide a lane that outreach is not helping"
+        icon={<ChartUpIcon size={18} />}
+        className="mt-6"
+      >
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -201,12 +226,12 @@ export default function Experiment() {
           </table>
         </div>
 
-        <Note>
+        <Callout>
           Splitting by class is how you find a lane that outreach is not helping
           before a merchant does. Look at the spend column next to the verdict
           column — the most expensive lane here is not the one carrying the
           result.
-        </Note>
+        </Callout>
       </Card>
     </Page>
   );

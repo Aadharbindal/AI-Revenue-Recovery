@@ -477,14 +477,3 @@ export function CaseLink({ id }: { id: string }) {
   );
 }
 
-/**
- * A short note explaining what a number means or why it is trustworthy.
- * Used liberally: a metric nobody can interpret is decoration.
- */
-export function Note({ children }: { children: ReactNode }) {
-  return (
-    <p className="text-xs text-[var(--ink-3)] leading-relaxed border-l-2 border-[var(--line)] pl-3 mt-4">
-      {children}
-    </p>
-  );
-}

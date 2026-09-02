@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { tamperLedger, verifyLedger, type AuditStatus } from "@/lib/api";
-import { Card, Failed, Loading, Note, Page, Pill, Stat } from "@/components/ui";
+import {
+  Callout, Card, Failed, Loading, Page, Pill, Stat,
+} from "@/components/ui";
+import { LedgerIcon, ShieldIcon } from "@/components/icons";
 
 /**
  * Demonstrating the audit trail rather than asserting it.
@@ -44,6 +47,7 @@ export default function Audit() {
 
   return (
     <Page
+      crumbs={[{ label: "RecoverOS" }, { label: "Audit Ledger", accent: true }]}
       title="Audit Ledger"
       subtitle="Every decision the system made, hash-chained. Each row's hash covers the previous row's hash plus its own content."
       actions={
@@ -57,11 +61,16 @@ export default function Audit() {
       }
     >
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <Stat label="Events recorded" value={status.records.toLocaleString("en-IN")} />
+        <Stat
+          label="Events recorded"
+          value={status.records.toLocaleString("en-IN")}
+          icon={<LedgerIcon size={17} />}
+        />
         <Stat
           label="Chain integrity"
           value={status.valid ? "VALID" : "BROKEN"}
           tone={status.valid ? "good" : "bad"}
+          icon={<ShieldIcon size={17} />}
         />
         <Stat
           label="Rows that fail verification"
@@ -77,12 +86,12 @@ export default function Audit() {
             fresh recomputation from genesis. Nothing has been edited since it
             was written.
           </p>
-          <Note>
+          <Callout>
             Press <span className="text-[var(--critical)]">Tamper with a record</span> to
             rewrite one recorded amount, the way somebody covering their tracks
             would. Nothing else is touched — the row keeps its stored hash,
             which is exactly why the next verification catches it.
-          </Note>
+          </Callout>
         </Card>
       ) : (
         <Card>
@@ -120,14 +129,14 @@ export default function Audit() {
             broken_at: [{status.broken_at.join(", ")}]
           </p>
 
-          <Note>
+          <Callout>
             Verification walks forward from each row&apos;s stored hash, so an
             edited row is named on its own rather than dragging every later row
             into the report. Naming one row says exactly which decision was
             rewritten. Re-run the batch from{" "}
             <span className="text-[var(--treatment)]">Live Batch</span> to rebuild a clean
             chain.
-          </Note>
+          </Callout>
         </Card>
       )}
     </Page>

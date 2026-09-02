@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 
 import { fetchExceptions, type ExceptionRow } from "@/lib/api";
 import { CLASS_COLORS, rupees, rupeesShort } from "@/lib/format";
-import { Bar, Card, Failed, Loading, Note, Page, Pill, Stat } from "@/components/ui";
+import {
+  Bar, Callout, Card, Failed, Loading, Page, Pill, Stat,
+} from "@/components/ui";
+import { AlertIcon, BanIcon, RupeeIcon } from "@/components/icons";
 
 /**
  * The honest exception list.
@@ -31,20 +34,36 @@ export default function Exceptions() {
 
   return (
     <Page
+      crumbs={[{ label: "RecoverOS" }, { label: "Exceptions", accent: true }]}
       title="Exceptions"
       subtitle="Everything the system did not recover, grouped by why, ranked by the money still on the table."
     >
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <Stat label="Unresolved cases" value={String(totalCases)} />
+        <Stat
+          label="Unresolved cases"
+          value={String(totalCases)}
+          icon={<AlertIcon size={17} />}
+        />
         <Stat
           label="Value left on the table"
           value={rupeesShort(totalAmount)}
           tone="warn"
+          icon={<RupeeIcon size={17} />}
         />
-        <Stat label="Distinct reasons" value={String(rows.length)} />
+        <Stat
+          label="Distinct reasons"
+          value={String(rows.length)}
+          tone="muted"
+          icon={<BanIcon size={17} />}
+        />
       </div>
 
-      <Card title="Why each case is still open">
+      <Card
+        title="Why each case is still open"
+        hint="Ranked by the money still on the table, not by count"
+        icon={<AlertIcon size={18} />}
+        tone="warn"
+      >
         <div className="space-y-5">
           {rows.map((row) => (
             <div key={row.reason} className="border-b border-[var(--line)] pb-5 last:border-0">
@@ -71,14 +90,14 @@ export default function Exceptions() {
           ))}
         </div>
 
-        <Note>
+        <Callout>
           Several of these are not failures. A case closed because the customer
           revoked consent, or because the order was already settled, is the
           system working exactly as intended — the money is genuinely
           unrecoverable and chasing it would be worse than losing it. The rows
           worth arguing about are the ones that ran out of attempts or ran out
           of window.
-        </Note>
+        </Callout>
       </Card>
     </Page>
   );

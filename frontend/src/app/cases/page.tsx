@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { fetchCases, type CaseRow } from "@/lib/api";
 import { CLASS_COLORS, STATE_COLORS, rupees } from "@/lib/format";
 import { CaseLink, Card, Failed, Loading, Page, Pill } from "@/components/ui";
+import { CasesIcon } from "@/components/icons";
 
 const STATES = ["", "RECOVERED", "EXHAUSTED", "CLOSED"];
 const CLASSES = [
@@ -43,6 +44,7 @@ export default function Cases() {
 
   return (
     <Page
+      crumbs={[{ label: "RecoverOS" }, { label: "Cases", accent: true }]}
       title="Cases"
       subtitle="Ordered by amount at risk — the same order the agent works them in, because a customer's contact budget is finite."
     >
@@ -73,7 +75,7 @@ export default function Cases() {
         />
       </div>
 
-      <Card>
+      <Card title="Every case in the batch" icon={<CasesIcon size={18} />}>
         <div className="text-xs text-[var(--ink-3)] mb-3 font-mono">
           {rows.length} of {total} cases
         </div>
