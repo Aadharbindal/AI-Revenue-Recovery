@@ -19,6 +19,34 @@ It covers all three lanes in the brief:
 | **Checkout abandonment** | Its own class: no error to diagnose and nothing to retry, so a shorter two-touch ladder |
 | **Overdue receivables** | Email → WhatsApp → Hinglish voice call, with a promise-to-pay hold |
 
+<details>
+<summary><strong>The bar, and the example directions, checked off</strong></summary>
+
+**The bar.** *"Show measured money recovered across a batch, with compliant
+escalation, stopping rules, and an audit trail."*
+
+| | Where |
+| --- | --- |
+| Measured money recovered | +14.4 pp against a 163-case control arm, 95% CI 7.4 → 21.4, ₹20.30 per incremental recovery — [EVALUATION.md](EVALUATION.md) |
+| Compliant escalation | Eleven gates on every proposed action, all evaluated and all recorded — [docs/guardrails.md](docs/guardrails.md) |
+| Stopping rules | G10 closes a case for good and honours a promise-to-pay until its date; `DEAD` spends nothing; attempt and frequency caps bound the rest |
+| Audit trail | 4,185 SHA-256 hash-chained events. `make verify` recomputes from genesis; the dashboard can break it and put it back |
+
+**Example directions.** Six of the seven are built. The seventh is a
+deliberate no.
+
+| Direction | |
+| --- | --- |
+| Payment degradation → root cause → recovery action | The classifier routes on `error_source` + `error_step`; the detector z-scores each issuer against its own baseline and holds retries while it is degraded |
+| Checkout drop-off recovery | `CHECKOUT_ABANDONED`, its own class with a shorter two-touch ladder — nothing failed, so there is nothing to diagnose or retry |
+| Failed-subscription recovery | `MANDATE_REPAIR`. Rule R-04 |
+| B2B receivables chaser | `RECEIVABLE_CHASE`: email → WhatsApp → voice, over a seven-day window |
+| **Mandate retry sequencer** | **Not built, on purpose.** A retry against a revoked mandate is guaranteed to fail and would spend one of the case's three attempts proving it. The system asks for a fresh authorisation instead. Sequencing retries better was not the answer; not retrying was — [docs/future-scope.md](docs/future-scope.md) |
+| Hinglish voice recovery | 23 rendered calls across `en`, `hi` and `hinglish`. Every script clears the same validator: automated-call disclosure, opt-out instruction, no coercive language in English *or* Hindi |
+| Promise-to-pay tracker | A Tier-3 call can end in a commitment. G10 then refuses all contact until that date, after which the case resolves or reopens |
+
+</details>
+
 ---
 
 ## The one architectural rule
