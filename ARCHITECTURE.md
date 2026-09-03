@@ -246,9 +246,16 @@ system.
 
 `app/sim/oracle.py` decides whether a case recovered. It plays by four rules:
 
-1. The agent never reads it. `app/core/*` does not import it. The orchestrator
-   asks for an outcome only *after* it has decided and acted, the way it would
-   ask a payment gateway.
+1. No decision module reads it. The classifier, the ladder, the policy engine,
+   the detector and the live webhook handler do not import it, so nothing in
+   the oracle can change what the agent chooses to do. The orchestrator *does*
+   import it — something has to record outcomes — and calls only the four
+   functions that report one, after it has already decided and acted, the way
+   it would ask a payment gateway. A test pins both halves.
+
+   This boundary is what makes [sensitivity analysis](docs/sensitivity.md)
+   possible: because no decision can depend on these numbers, changing them
+   re-decides outcomes over a fixed run instead of producing a different run.
 2. Seeded per case, so the same case with the same treatment always resolves
    the same way. Re-running cannot fish for a better number.
 3. Local RNG. A global `random.seed()` would make every other seeded component

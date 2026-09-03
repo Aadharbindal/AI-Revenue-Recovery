@@ -9,7 +9,7 @@ PYTHON  ?= python
 BACKEND := backend
 export PYTHONPATH := $(BACKEND)
 
-.PHONY: help demo install seed run-batch report verify voice webhook test api web build clean
+.PHONY: help demo install seed run-batch report verify voice webhook sensitivity test api web build clean
 
 help:
 	@echo "RecoverOS"
@@ -20,13 +20,14 @@ help:
 	@echo "  make verify    recompute the audit chain from genesis"
 	@echo "  make voice     render the Hinglish voice scripts to audio"
 	@echo "  make webhook   post a real Razorpay payment.failed at the running API"
+	@echo "  make sensitivity  sweep every assumption and regenerate docs/sensitivity.md"
 	@echo "  make api       backend on http://localhost:8000"
 	@echo "  make web       dashboard on http://localhost:3000"
 	@echo ""
 	@echo "No API keys are required. Without them the demo runs on"
 	@echo "deterministic templates and simulated payment links, and says so."
 
-demo: seed run-batch report
+demo: seed run-batch report sensitivity
 	@echo ""
 	@echo "Done. Read EVALUATION.md, or run 'make api' and 'make web' for the dashboard."
 
@@ -42,6 +43,9 @@ run-batch:
 
 report:
 	$(PYTHON) $(BACKEND)/scripts/make_report.py
+
+sensitivity:
+	$(PYTHON) $(BACKEND)/scripts/sensitivity.py
 
 verify:
 	$(PYTHON) $(BACKEND)/scripts/verify_ledger.py

@@ -295,3 +295,21 @@ export function BarsIcon(props: IconProps) {
     </svg>
   );
 }
+
+/**
+ * Sensitivity — sliders.
+ *
+ * The page is about moving assumptions and watching the answer move, and a
+ * set of tracks with handles at different positions says that at 17px. A
+ * balance scale was the other candidate and read as "legal" instead.
+ */
+export function SlidersIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M4 7h5M13 7h7" />
+      <circle cx="11" cy="7" r="2" />
+      <path d="M4 17h11M19 17h1" />
+      <circle cx="17" cy="17" r="2" />
+    </Svg>
+  );
+}

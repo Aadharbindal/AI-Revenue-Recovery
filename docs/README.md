@@ -16,6 +16,7 @@ for the numbers. Everything here is the detail behind those two.
 | Document | What it answers |
 | --- | --- |
 | [../EVALUATION.md](../EVALUATION.md) | Lift, confidence intervals, per-class breakdown, guardrail value, the honest exception list. **Reproducible** — CI regenerates it on every push and fails if it drifts |
+| [sensitivity.md](sensitivity.md) | How far the seventy-three chosen numbers can be wrong before the conclusion changes. **Reproducible** — CI regenerates it and fails if it drifts |
 | [run-environment.md](run-environment.md) | Message provenance and live payment links. **Not reproducible**, and not meant to be: it depends on which services answered |
 | [data/](data/) | The same numbers as JSON, for anything that wants to read them rather than look at them |
 

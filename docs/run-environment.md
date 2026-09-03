@@ -8,26 +8,26 @@ This file records the run that produced the committed database.
 
 | Source | Count |
 | --- | --- |
-| Written by the model | 469 |
-| Deterministic template | 219 |
+| Written by the model | 502 |
+| Deterministic template | 186 |
 
 ### Drafts the validator refused
 
 The guardrail doing its job against a live model, not a fixture.
 
-- `MISSING_TOKEN:amount` x78
-- `TOO_LONG:161>160` x12
-- `MISSING_OPTOUT_INSTRUCTION` x12
+- `MISSING_OPTOUT_INSTRUCTION` x18
+- `MISSING_AUTOMATED_CALL_DISCLOSURE` x5
+- `MISSING_TOKEN:amount` x1
 
 ### Calls the provider did not answer
 
 A free tier rate-limits. The batch finished anyway, which is the entire point of having a deterministic fallback.
 
-- `PROVIDER_ERROR:RateLimitError` x117
+- `PROVIDER_ERROR:RateLimitError` x162
 
 ## Payment links
 
-Live Razorpay test-mode links minted: **10**. Every other link is simulated and flagged as such in the database, so nothing on the dashboard implies more live integration than there is.
+Live Razorpay test-mode links minted: **0**. Every other link is simulated and flagged as such in the database, so nothing on the dashboard implies more live integration than there is.
 
 ## Delivery by tier
 

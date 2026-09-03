@@ -66,7 +66,7 @@ from deterministic templates and payment links are simulated and flagged as
 such. **You do not need our credentials to reproduce our numbers.**
 
 ```bash
-make test      # 204 tests
+make test      # 219 tests
 make verify    # recompute the audit chain from genesis
 make webhook   # post a real Razorpay payment.failed at a running API
 make api       # backend on :8000
@@ -85,6 +85,7 @@ export PYTHONPATH=backend          # PowerShell: $env:PYTHONPATH="backend"
 python backend/scripts/seed.py           # build demo.db from seed 42
 python backend/scripts/run_batch.py      # run the 7-day simulation
 python backend/scripts/make_report.py    # regenerate EVALUATION.md
+python backend/scripts/sensitivity.py    # sweep every assumption
 python backend/scripts/verify_ledger.py  # recompute the audit chain
 python backend/scripts/render_voice.py   # render the voice scripts to audio
 python backend/scripts/send_webhook.py   # post a real Razorpay webhook
@@ -148,8 +149,14 @@ statistics do not depend on it at all.
 
 **Simulated:** whether a customer paid. Outcomes come from a seeded oracle whose
 base rates are written down and justified in
-[docs/assumptions.md](docs/assumptions.md). `app/core/*` does not import it. No
-real customer was contacted and no real money moved.
+[docs/assumptions.md](docs/assumptions.md). No decision module imports it — the
+classifier, ladder, policy engine and detector cannot see it, so nothing in it
+can change what the agent does. The orchestrator calls it only to record what
+happened, after it has already acted. No real customer was contacted and no real
+money moved.
+
+**How wrong could those numbers be?** [docs/sensitivity.md](docs/sensitivity.md)
+moves every one of them across a wide range and reports what the answer does.
 
 Payment links are minted live against Razorpay test mode up to a small budget
 and simulated beyond it — every link is stored with a flag saying which it is,
@@ -305,12 +312,12 @@ backend/
       live.py              one real webhook, through those same functions
     llm/                   prompts, validator, fallbacks, written-to-spoken
     sim/                   dataset generator, outcome oracle (the agent cannot read it)
-    analytics/             experiment statistics, report rendering
+    analytics/             experiment statistics, sensitivity sweep, reports
     api/                   FastAPI routers
     models.py  db.py       schema and session
   scripts/                 seed, run-batch, report, verify-ledger, render-voice,
                            send-webhook
-  tests/                   204 tests
+  tests/                   219 tests
   demo.db                  committed and pre-seeded, so a clone shows these numbers
 
 examples/

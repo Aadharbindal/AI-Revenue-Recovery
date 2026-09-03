@@ -14,7 +14,7 @@ import {
   ChevronRightIcon,
   FlaskIcon,
   LedgerIcon,
-  ShieldIcon,
+  ShieldIcon, SlidersIcon,
   TerminalIcon,
 } from "@/components/icons";
 import Logo from "@/components/Logo";
@@ -33,6 +33,7 @@ const GROUPS: { label: string; links: { href: string; label: string; icon: IconT
     links: [
       { href: "/", label: "Command Center", icon: TerminalIcon },
       { href: "/experiment", label: "Experiment", icon: FlaskIcon },
+      { href: "/sensitivity", label: "Sensitivity", icon: SlidersIcon },
       { href: "/exceptions", label: "Exceptions", icon: AlertIcon },
     ],
   },

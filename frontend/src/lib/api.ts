@@ -284,6 +284,48 @@ export interface ValidationResponse {
   fallback_template: string;
 }
 
+export interface SensitivityPoint {
+  factor: number;
+  net_lift: number;
+  ci_lower: number;
+  ci_upper: number;
+  is_significant: boolean;
+}
+
+export interface SensitivityParameter {
+  label: string;
+  kind: string;
+  key: string | null;
+  points: SensitivityPoint[];
+  low_lift: number;
+  high_lift: number;
+  swing_pp: number;
+  impact: "material" | "moderate" | "negligible";
+  breaks_at: number | null;
+  breaking_point?: number | null;
+}
+
+export interface SensitivityReport {
+  committed: {
+    treatment_rate: number;
+    control_rate: number;
+    net_lift: number;
+    ci_lower: number;
+    ci_upper: number;
+    is_significant: boolean;
+  };
+  sweep_factors: number[];
+  parameters: SensitivityParameter[];
+  material_count: number;
+  breakers: {
+    label: string;
+    breaks_at: number;
+    breaking_point: number | null;
+    wrong_by_pct: number | null;
+  }[];
+  conclusion_holds: boolean;
+}
+
 export interface HealthStatus {
   status: string;
   simulation: {
@@ -313,6 +355,8 @@ export const fetchExceptions = () =>
   get<{ exceptions: ExceptionRow[] }>("/metrics/exceptions");
 export const fetchTimeline = () => get<Timeline>("/metrics/timeline");
 export const fetchFlow = () => get<Flow>("/metrics/flow");
+export const fetchSensitivity = () =>
+  get<SensitivityReport>("/metrics/sensitivity");
 export const fetchExperiment = () =>
   get<{ overall: ExperimentResult; per_class: ClassRow[] }>("/metrics/experiment");
 export const fetchFunnel = (arm = "treatment") =>

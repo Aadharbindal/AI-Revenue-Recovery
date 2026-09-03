@@ -7,6 +7,7 @@ from app.analytics.experiment import (
     calculate_experiment_results, exception_report, per_class_breakdown,
 )
 from app.analytics.report import delivery_report, full_report, guardrail_report
+from app.analytics.sensitivity import sensitivity_report
 from app.core import clock
 from app.core.detector import detector
 from app.db import get_db
@@ -85,3 +86,16 @@ def funnel(db: Session = Depends(get_db), arm: str = Query("treatment")):
         "by_class": dict(Counter(c.recovery_class for c in cases)),
         "by_touches": dict(Counter(c.touches_used for c in cases)),
     }
+
+
+@router.get("/metrics/sensitivity")
+def sensitivity(db: Session = Depends(get_db)):
+    """
+    How far the chosen assumptions can be wrong before the conclusion changes.
+
+    Every parameter in the outcome oracle is moved across a wide range and the
+    experiment recomputed. This is a recomputation rather than a re-run,
+    because no decision module reads the oracle - the actions taken are fixed,
+    only whether the customer paid is re-decided.
+    """
+    return sensitivity_report(db)

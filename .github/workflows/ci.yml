@@ -29,6 +29,7 @@ jobs:
           python backend/scripts/seed.py --quiet
           python backend/scripts/run_batch.py
           python backend/scripts/make_report.py
+          python backend/scripts/sensitivity.py
         env:
           PYTHONPATH: backend
 

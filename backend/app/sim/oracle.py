@@ -8,9 +8,19 @@ measurement method. The oracle exists so those can be evaluated end-to-end.
 
 Rules the oracle plays by:
 
-* The agent never reads it. `app/core/*` does not import this module. The
-  orchestrator asks for an outcome only *after* it has already decided and
-  acted, exactly as it would ask a payment gateway.
+* No decision module reads it. The classifier, the ladder, the policy engine,
+  the detector and the live webhook handler do not import it, so nothing in
+  this file can change what the agent chooses to do.
+
+  The orchestrator does import it, because something has to record what
+  happened, and it calls only the four functions that report an outcome -
+  after it has already decided and acted, exactly as it would ask a payment
+  gateway. `tests/test_sensitivity.py` pins both halves of that boundary.
+
+  This distinction is load-bearing, not pedantry: it is what makes the
+  sensitivity sweep valid. Because the decisions cannot depend on these
+  numbers, changing them re-decides outcomes over a fixed run rather than
+  producing a different run.
 * It is seeded per case, so the same case with the same treatment always
   resolves the same way. Re-running the batch cannot fish for a better number.
 * It uses a local RNG. Calling `random.seed()` globally would make every other
