@@ -138,9 +138,18 @@ class Orchestrator:
     """
 
     def __init__(self, db: Session, emit: Optional[Callable[[dict], None]] = None,
-                 real_link_budget: Optional[int] = None):
+                 real_link_budget: Optional[int] = None,
+                 merchant_id: Optional[str] = None):
         self.db = db
         self.emit = emit or (lambda evt: None)
+
+        # Resolved once for the whole run. A policy that changed halfway
+        # through a batch would make the audit trail unreadable: two actions
+        # refused by the same gate for different reasons, with nothing on
+        # either row saying the rules moved in between.
+        from app.core import config
+        self.merchant_id = merchant_id
+        self.policy = config.active(merchant_id)
         self.real_link_budget = (
             DEFAULT_REAL_LINK_BUDGET if real_link_budget is None else real_link_budget
         )
@@ -401,6 +410,10 @@ class Orchestrator:
             "customer_touches_24h": self._touches_within(case.customer_id, now, hours=24),
             "customer_touches_7d": self._touches_within(case.customer_id, now, hours=168),
             "last_tier": self._last_tier.get(case.case_id),
+            # Resolved once per evaluation rather than looked up inside each
+            # gate, so every gate in one trail is guaranteed to have judged
+            # against the same rules.
+            "policy": self.policy,
         }
 
         decision = evaluate(case_dict, intent, ctx)
@@ -428,6 +441,10 @@ class Orchestrator:
             "customer_touches_24h": self._touches_within(case.customer_id, now, 24),
             "customer_touches_7d": self._touches_within(case.customer_id, now, 168),
             "last_tier": self._last_tier.get(case.case_id),
+            # Resolved once per evaluation rather than looked up inside each
+            # gate, so every gate in one trail is guaranteed to have judged
+            # against the same rules.
+            "policy": self.policy,
         })
         if not decision.allowed:
             self._record_block(case, intent, decision, tick_index, now)

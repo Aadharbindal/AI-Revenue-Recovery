@@ -28,6 +28,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from app.core import config
 from app.core.classifier import classify
 from app.core.ladder import get_next_action
 from app.core.ledger import canonical
@@ -96,7 +97,8 @@ def case_from_webhook(payload: dict) -> dict:
 
 def decide(payload: dict, *, now, signature_verified: bool,
            event_id: Optional[str] = None,
-           consent_voice: bool = False) -> dict:
+           consent_voice: bool = False,
+           merchant_id: Optional[str] = None) -> dict:
     """
     Classify, pick the next rung, and run all eleven gates. No side effects.
 
@@ -150,6 +152,9 @@ def decide(payload: dict, *, now, signature_verified: bool,
         "customer_touches_24h": 0,
         "customer_touches_7d": 0,
         "last_tier": None,
+        # Whose rules apply. A live event from a merchant with their own
+        # policy is judged by it, not by ours.
+        "policy": config.active(merchant_id),
     }
 
     decision = evaluate(case, intent, ctx)
@@ -171,6 +176,7 @@ def decide(payload: dict, *, now, signature_verified: bool,
         "latency_ms": round(elapsed, 2),
         "payment_id": parsed["entity"].get("id"),
         "event_id": event_id,
+        "policy": config.active(merchant_id).label,
     }
 
 

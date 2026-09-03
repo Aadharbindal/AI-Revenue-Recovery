@@ -54,3 +54,37 @@ def health(db: Session = Depends(get_db)):
             "voice_tts": bool(os.environ.get("SARVAM_API_KEY")),
         },
     }
+
+
+@router.get("/policy")
+def policy():
+    """
+    The rules in force, and whose they are.
+
+    A guardrail nobody can inspect is a guardrail nobody can audit. This serves
+    the resolved policy for every configured merchant, so a reviewer can see
+    what each one's gates will actually enforce rather than reading the code.
+    """
+    from dataclasses import asdict
+
+    from app.core import config
+
+    book = config.book()
+
+    def described(p):
+        row = asdict(p)
+        # Rung prices come back with integer keys; JSON needs strings, and a
+        # reader wants rupees rather than paise.
+        row["tier_cost_rupees"] = {
+            str(t): c / 100 for t, c in p.tier_cost_paise.items()
+        }
+        return row
+
+    return {
+        # None when no file is present, which is a supported way to run.
+        "source": book.source,
+        "defaults": described(book.default),
+        "merchants": {
+            merchant_id: described(p) for merchant_id, p in book.merchants.items()
+        },
+    }

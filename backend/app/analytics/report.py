@@ -14,7 +14,7 @@ from app.analytics.experiment import (
 from app.core import clock
 from app.core.detector import detector
 from app.core.ledger import verify_chain
-from app.core.policy import COMPLIANCE_RISK_PAISE
+from app.core import config
 from app.models import Action, Case, Event
 
 GATE_NAMES = {
@@ -71,7 +71,7 @@ def guardrail_report(db: Session) -> Dict:
         would_have_cost = TIER_SPEC.get(action.tier, ("", 0))[1]
         row["spend_avoided_paise"] += would_have_cost
         if reason in COMPLIANCE_REASONS:
-            row["compliance_avoided_paise"] += COMPLIANCE_RISK_PAISE
+            row["compliance_avoided_paise"] += config.active().compliance_risk_paise
 
     rows = []
     for gate in sorted(set(GATE_NAMES) | set(per_gate)):

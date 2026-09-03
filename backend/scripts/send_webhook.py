@@ -13,6 +13,7 @@ did not run.
     python backend/scripts/send_webhook.py
     python backend/scripts/send_webhook.py --reason issuer_down
     python backend/scripts/send_webhook.py --forge      # watch it get refused
+    python backend/scripts/send_webhook.py --merchant merchant_uk_subs
 """
 
 import argparse
@@ -38,6 +39,9 @@ def main() -> int:
     parser.add_argument("--amount", type=int, help="override the amount, in paise")
     parser.add_argument("--forge", action="store_true",
                         help="send a wrong signature, to watch it be refused")
+    parser.add_argument("--merchant",
+                        help="decide under this merchant's policy instead of "
+                             "the default (see config/policy.yaml)")
     args = parser.parse_args()
 
     with open(args.file, encoding="utf-8") as fh:
@@ -61,14 +65,20 @@ def main() -> int:
         print("--forge needs RZP_WEBHOOK_SECRET set, or there is no check to fail.")
         return 1
 
-    print(f"POST {args.url}")
+    url = args.url
+    if args.merchant:
+        url += f"?merchant={args.merchant}"
+
+    print(f"POST {url}")
+    if args.merchant:
+        print(f"  merchant      {args.merchant}")
     print(f"  error_reason  {entity['error_reason']}")
     print(f"  amount        Rs {entity['amount'] / 100:,.2f}")
     print(f"  signed        {'yes' if secret else 'no secret configured'}"
           f"{' (deliberately wrong)' if args.forge else ''}")
     print()
 
-    request = urllib.request.Request(args.url, data=body, headers=headers,
+    request = urllib.request.Request(url, data=body, headers=headers,
                                      method="POST")
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
@@ -98,6 +108,7 @@ def main() -> int:
     print(f"  signature       verified={result['signature_verified']} "
           f"checked={result['signature_checked']}")
     print(f"  executed        {result['executed']}")
+    print(f"  policy          {result.get('policy', 'default')}")
     print()
 
     for gate in result["gate_trail"]:

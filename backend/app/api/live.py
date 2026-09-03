@@ -52,6 +52,7 @@ async def payment_failed(
     db: Session = Depends(get_db),
     x_razorpay_signature: str = Header(default=""),
     x_razorpay_event_id: str = Header(default=""),
+    merchant: str = "",
 ):
     """
     Decide one real payment failure.
@@ -89,7 +90,8 @@ async def payment_failed(
     received_at = now.isoformat()
 
     result = decide(payload, now=now, signature_verified=verified,
-                    event_id=x_razorpay_event_id or None)
+                    event_id=x_razorpay_event_id or None,
+                    merchant_id=merchant or None)
     stored = record(db, received_at=received_at, result=result,
                     signature_verified=verified, payload=payload)
 

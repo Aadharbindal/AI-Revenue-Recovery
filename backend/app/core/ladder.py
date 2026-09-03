@@ -16,16 +16,50 @@ from typing import Optional
 
 # Tier -> (channel, cost in paise). Costs are the realistic Indian rates a
 # merchant actually pays, which is what makes the ROI number meaningful.
-TIER_SPEC = {
-    0: ("silent", 0),        # a retry against the gateway; costs nothing
-    1: ("whatsapp", 30),     # ₹0.30
-    2: ("sms", 20),          # ₹0.20
-    3: ("voice", 150),       # ₹1.50
-    4: ("human", 5000),      # ₹50.00 of an agent's time
+# Which channel each rung uses. The channel is structural — tier 3 is the voice
+# rung by definition — so it stays here. What each one *costs*, and the amount
+# above which a call is worth placing, are a merchant's numbers and live in
+# config/policy.yaml.
+TIER_CHANNEL = {
+    0: "silent",             # a retry against the gateway
+    1: "whatsapp",
+    2: "sms",
+    3: "voice",
+    4: "human",              # an agent's time
 }
 
-VOICE_MIN_AMOUNT_PAISE = 200_000   # ₹2,000
-MAX_TOUCHES = 3
+
+def tier_cost(tier: int, policy=None) -> int:
+    from app.core import config
+    return (policy or config.active()).tier_cost_paise[tier]
+
+
+def voice_min_amount(policy=None) -> int:
+    from app.core import config
+    return (policy or config.active()).voice_min_amount_paise
+
+
+def max_touches(policy=None) -> int:
+    from app.core import config
+    return (policy or config.active()).max_touches_per_case
+
+
+# Kept as a module attribute because the analytics layer prices blocked actions
+# from it. Reads the active policy on each access rather than freezing at
+# import, so an operator who edits the file and reloads sees the new prices.
+class _TierSpec:
+    """`TIER_SPEC[tier]` -> (channel, cost) against the active policy."""
+
+    def __getitem__(self, tier):
+        return TIER_CHANNEL[tier], tier_cost(tier)
+
+    def get(self, tier, default=None):
+        if tier not in TIER_CHANNEL:
+            return default
+        return self[tier]
+
+
+TIER_SPEC = _TierSpec()
 
 
 @dataclass
@@ -38,7 +72,7 @@ class ActionIntent:
 
 def _intent(tier: int, rationale: str, channel: Optional[str] = None,
             cost_paise: Optional[int] = None) -> ActionIntent:
-    chan, cost = TIER_SPEC[tier]
+    chan, cost = TIER_CHANNEL[tier], tier_cost(tier)
     return ActionIntent(tier=tier, channel=channel or chan,
                         cost_paise=cost if cost_paise is None else cost_paise,
                         rationale=rationale)
@@ -119,8 +153,8 @@ def get_next_action(recovery_class: str, touches_used: int, amount_paise: int,
                            channel="email")
         if touches_used == 1:
             return _intent(2, "no reply to the email: WhatsApp reminder",
-                           channel="whatsapp", cost_paise=TIER_SPEC[1][1])
-        if amount_paise >= VOICE_MIN_AMOUNT_PAISE and consent_voice:
+                           channel="whatsapp", cost_paise=tier_cost(1))
+        if amount_paise >= voice_min_amount() and consent_voice:
             return _intent(3, "high-value invoice, voice consent on file: "
                               "Hinglish call with a promise-to-pay option")
         return _intent(2, "below the voice threshold or no voice consent: SMS instead")

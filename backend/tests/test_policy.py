@@ -12,7 +12,8 @@ import pytest
 
 from app.core.clock import IST
 from app.core.ladder import ActionIntent
-from app.core.policy import MIN_VIABLE_AMOUNT_PAISE, evaluate
+from app.core import config
+from app.core.policy import evaluate
 
 CONSENTING = {
     "consent_whatsapp": True, "consent_sms": True,
@@ -185,7 +186,7 @@ def test_tiny_amounts_are_not_worth_chasing():
 
 
 def test_cost_may_not_exceed_the_share_cap():
-    decision = evaluate(case(amount_at_risk_paise=MIN_VIABLE_AMOUNT_PAISE + 100),
+    decision = evaluate(case(amount_at_risk_paise=config.active().min_viable_amount_paise + 100),
                         whatsapp(cost=5_000), ctx())
     assert decision.reason_code == "COST_EXCEEDS_BAND"
 

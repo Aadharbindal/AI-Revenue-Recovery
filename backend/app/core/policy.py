@@ -22,33 +22,23 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import List, Optional
 
+from app.core import config
 from app.core.clock import ist_hour
 from app.core.detector import detector
 from app.core.ladder import ActionIntent
 
-# Contacting someone who has revoked consent, or who is on the DND registry, is
-# not a wasted rupee — it is a regulatory exposure. Priced conservatively so
-# the "value protected" number is defensible rather than flattering.
-COMPLIANCE_RISK_PAISE = 50_000  # ₹500 per avoided violation
+# The numbers these gates enforce are a merchant's decision, not an
+# engineering constant, so they live in config/policy.yaml and are resolved per
+# merchant. See app/core/config.py; deleting the file falls back to exactly the
+# values the committed evaluation was produced with.
+#
+# `ctx["policy"]` carries the resolved policy for the case being evaluated. It
+# is read through `_policy` rather than taken directly so a caller that has not
+# been updated still gets the defaults instead of a KeyError.
 
-QUIET_START_IST = 21   # 9 PM
-QUIET_END_IST = 9      # 9 AM
-VOICE_START_IST = 10   # 10 AM
-VOICE_END_IST = 19     # 7 PM
 
-MAX_TOUCHES_PER_CASE = 3
-MAX_TOUCHES_24H = 1
-MAX_TOUCHES_7D = 3
-COOLDOWN_HOURS = 6
-MAX_COST_RATIO = 0.15  # never spend more than 15% of what is at stake
-
-# Below this, automated recovery loses money even though the per-message ratio
-# looks fine. A ₹0.30 WhatsApp against a ₹40 order is 0.75% — but the message is
-# not the real cost. A contacted customer replies, and a reply costs support
-# time; the payment needs reconciling either way. Fully loaded, a recovery
-# attempt is worth roughly ₹50 of somebody's attention, so anything under that
-# is chased at a loss no matter how cheap the channel looks.
-MIN_VIABLE_AMOUNT_PAISE = 5_000  # ₹50
+def _policy(ctx) -> config.PolicyConfig:
+    return ctx.get("policy") or config.active(ctx.get("merchant_id"))
 
 TERMINAL_STATES = {"RECOVERED", "EXHAUSTED", "CLOSED"}
 
@@ -123,14 +113,18 @@ def g02_quiet_hours(case, action, ctx) -> GateResult:
         return GateResult("G02", "QUIET_HOURS", True, "NOT_APPLICABLE",
                           "Not a customer-facing contact")
 
+    p = _policy(ctx)
     hour = ist_hour(ctx["now"])
-    if hour >= QUIET_START_IST or hour < QUIET_END_IST:
+    if hour >= p.quiet_start_ist or hour < p.quiet_end_ist:
         return GateResult("G02", "QUIET_HOURS", False, "QUIET_HOURS",
-                          f"{hour:02d}:00 IST is inside the 9PM-9AM no-contact window")
+                          f"{hour:02d}:00 IST is inside the "
+                          f"{p.quiet_start_ist}:00-{p.quiet_end_ist}:00 "
+                          "no-contact window")
 
-    if action.channel == "voice" and not (VOICE_START_IST <= hour < VOICE_END_IST):
+    if action.channel == "voice" and not (p.voice_start_ist <= hour < p.voice_end_ist):
         return GateResult("G02", "QUIET_HOURS", False, "VOICE_HOURS",
-                          f"Voice calls only 10AM-7PM IST; now {hour:02d}:00")
+                          f"Voice calls only {p.voice_start_ist}:00-"
+                          f"{p.voice_end_ist}:00 IST; now {hour:02d}:00")
 
     return GateResult("G02", "QUIET_HOURS", True, "OK", f"{hour:02d}:00 IST is contactable")
 
@@ -140,13 +134,14 @@ def g03_frequency_cap(case, action, ctx) -> GateResult:
         return GateResult("G03", "FREQUENCY_CAP", True, "NOT_APPLICABLE",
                           "Silent and internal actions do not reach the customer")
 
+    p = _policy(ctx)
     t24 = ctx.get("customer_touches_24h", 0)
     t7d = ctx.get("customer_touches_7d", 0)
 
-    if t24 >= MAX_TOUCHES_24H:
+    if t24 >= p.max_touches_24h:
         return GateResult("G03", "FREQUENCY_CAP", False, "FREQ_CAP_24H",
                           f"Customer already contacted {t24}x in the last 24h")
-    if t7d >= MAX_TOUCHES_7D:
+    if t7d >= p.max_touches_7d:
         return GateResult("G03", "FREQUENCY_CAP", False, "FREQ_CAP_7D",
                           f"Customer already contacted {t7d}x in the last 7 days")
 
@@ -155,12 +150,13 @@ def g03_frequency_cap(case, action, ctx) -> GateResult:
 
 
 def g04_attempt_cap(case, action, ctx) -> GateResult:
+    p = _policy(ctx)
     used = case.get("touches_used", 0)
-    if used >= MAX_TOUCHES_PER_CASE:
+    if used >= p.max_touches_per_case:
         return GateResult("G04", "ATTEMPT_CAP", False, "MAX_ATTEMPTS",
-                          f"Case has used all {MAX_TOUCHES_PER_CASE} attempts")
+                          f"Case has used all {p.max_touches_per_case} attempts")
     return GateResult("G04", "ATTEMPT_CAP", True, "OK",
-                      f"{used}/{MAX_TOUCHES_PER_CASE} attempts used")
+                      f"{used}/{p.max_touches_per_case} attempts used")
 
 
 def g05_cooldown(case, action, ctx) -> GateResult:
@@ -168,14 +164,17 @@ def g05_cooldown(case, action, ctx) -> GateResult:
     if last is None:
         return GateResult("G05", "COOLDOWN", True, "OK", "First touch on this case")
 
+    p = _policy(ctx)
     hours = (ctx["now"] - last).total_seconds() / 3600
-    if hours < COOLDOWN_HOURS:
+    if hours < p.cooldown_hours:
         return GateResult("G05", "COOLDOWN", False, "COOLDOWN_ACTIVE",
-                          f"Only {hours:.1f}h since last touch, need {COOLDOWN_HOURS}h")
+                          f"Only {hours:.1f}h since last touch, "
+                          f"need {p.cooldown_hours}h")
     return GateResult("G05", "COOLDOWN", True, "OK", f"{hours:.1f}h since last touch")
 
 
 def g06_amount_band(case, action, ctx) -> GateResult:
+    p = _policy(ctx)
     amount = case.get("amount_at_risk_paise", 0)
     cost = action.cost_paise
 
@@ -186,17 +185,17 @@ def g06_amount_band(case, action, ctx) -> GateResult:
         return GateResult("G06", "AMOUNT_BAND", False, "NO_VALUE_AT_RISK",
                           "Nothing at stake to recover")
 
-    if amount < MIN_VIABLE_AMOUNT_PAISE:
+    if amount < p.min_viable_amount_paise:
         return GateResult("G06", "AMOUNT_BAND", False, "BELOW_VIABLE_FLOOR",
                           f"Rs {amount/100:.2f} is under the Rs "
-                          f"{MIN_VIABLE_AMOUNT_PAISE/100:.0f} floor - fully-loaded "
+                          f"{p.min_viable_amount_paise/100:.0f} floor - fully-loaded "
                           f"recovery cost exceeds what can be recovered")
 
     ratio = cost / amount
-    if ratio > MAX_COST_RATIO:
+    if ratio > p.max_cost_ratio:
         return GateResult("G06", "AMOUNT_BAND", False, "COST_EXCEEDS_BAND",
                           f"Rs {cost/100:.2f} is {ratio:.0%} of Rs {amount/100:.2f} at risk "
-                          f"(cap {MAX_COST_RATIO:.0%})")
+                          f"(cap {p.max_cost_ratio:.0%})")
     return GateResult("G06", "AMOUNT_BAND", True, "OK",
                       f"Cost is {ratio:.1%} of the amount at risk")
 
@@ -283,7 +282,7 @@ def evaluate(case: dict, action: ActionIntent, ctx: dict) -> PolicyDecision:
     allowed = blocked_by is None
     value_protected = 0 if allowed else action.cost_paise
     compliance_avoided = (
-        COMPLIANCE_RISK_PAISE
+        _policy(ctx).compliance_risk_paise
         if (not allowed and reason_code in COMPLIANCE_REASONS)
         else 0
     )

@@ -10,6 +10,7 @@ sqlalchemy>=2.0.25        # 2.0 ORM style is used throughout
 pydantic>=2.6             # model_validate_json, used by the LLM validator
 requests>=2.31
 httpx>=0.26               # fastapi.testclient
+pyyaml>=6.0               # config/policy.yaml — the gates' numbers
 pytest>=8.0
 
 # Optional. The batch runs without it, on deterministic fallback templates —

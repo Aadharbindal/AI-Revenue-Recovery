@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { fetchDelivery, fetchGuardrails, type DeliveryReport, type GuardrailReport } from "@/lib/api";
+import {
+  fetchDelivery, fetchGuardrails, fetchPolicy,
+  type DeliveryReport, type GuardrailReport, type PolicyBook, type PolicyConfig,
+} from "@/lib/api";
 import { CHANNEL_LABELS, rupees, rupeesShort } from "@/lib/format";
 import {
   Bar, Callout, Card, Failed, Loading, Page, Pill, Stat,
@@ -12,34 +15,49 @@ import {
   ChartUpIcon, RupeeIcon, ShieldAlertIcon, ShieldIcon, TerminalIcon,
 } from "@/components/icons";
 
-const GATE_PURPOSE: Record<string, string> = {
-  G01: "Never contact someone who revoked consent or sits on the DND registry",
-  G02: "No commercial contact 9PM–9AM IST; voice only 10AM–7PM",
-  G03: "One touch per customer per day, three per week — across all their cases",
-  G04: "Three recovery attempts per case, then stop",
-  G05: "Six hours between two touches on the same case",
-  G06: "Never spend more than 15% of the amount at risk, and never chase below the viability floor",
-  G07: "Risk-blocked cases go to a human and are never auto-contacted",
-  G08: "Hold retries while the issuer is down instead of burning attempts",
-  G09: "Stop the moment the order is settled through another route",
-  G10: "Closed is closed, and a promise to pay is honoured until its date",
-  G11: "No skipping tiers — voice has to be earned",
-};
+const hour = (h: number) => `${h % 12 || 12}${h < 12 ? "AM" : "PM"}`;
+
+/**
+ * What each gate is for, in the numbers actually in force.
+ *
+ * These used to be a fixed table quoting 9PM–9AM and 15%. Those are now a
+ * merchant's settings, so a hardcoded description would confidently explain
+ * somebody else's policy the moment one was configured.
+ */
+function gatePurpose(p: PolicyConfig): Record<string, string> {
+  return {
+    G01: "Never contact someone who revoked consent or sits on the DND registry",
+    G02: `No commercial contact ${hour(p.quiet_start_ist)}–${hour(p.quiet_end_ist)} IST; voice only ${hour(p.voice_start_ist)}–${hour(p.voice_end_ist)}`,
+    G03: `${p.max_touches_24h} touch per customer per day, ${p.max_touches_7d} per week — across all their cases`,
+    G04: `${p.max_touches_per_case} recovery attempts per case, then stop`,
+    G05: `${p.cooldown_hours} hours between two touches on the same case`,
+    G06: `Never spend more than ${Math.round(p.max_cost_ratio * 100)}% of the amount at risk, and never chase below ₹${p.min_viable_amount_paise / 100}`,
+    G07: "Risk-blocked cases go to a human and are never auto-contacted",
+    G08: "Hold retries while the issuer is down instead of burning attempts",
+    G09: "Stop the moment the order is settled through another route",
+    G10: "Closed is closed, and a promise to pay is honoured until its date",
+    G11: "No skipping tiers — voice has to be earned",
+  };
+}
 
 export default function Guardrails() {
-  const [data, setData] = useState<{ g: GuardrailReport; d: DeliveryReport } | null>(null);
+  const [data, setData] = useState<
+    { g: GuardrailReport; d: DeliveryReport; p: PolicyBook } | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([fetchGuardrails(), fetchDelivery()])
-      .then(([g, d]) => setData({ g, d }))
+    Promise.all([fetchGuardrails(), fetchDelivery(), fetchPolicy()])
+      .then(([g, d, p]) => setData({ g, d, p }))
       .catch((e: Error) => setError(e.message));
   }, []);
 
   if (error) return <Failed error={error} />;
   if (!data) return <Loading what="guardrails" />;
 
-  const { g, d } = data;
+  const { g, d, p } = data;
+  const purpose = gatePurpose(p.defaults);
+  const merchants = Object.entries(p.merchants);
   // A provider outage and a refused draft both end in a fallback, but only one
   // of them is the guardrail doing its job. Counting them together would
   // overstate what the validator caught.
@@ -74,9 +92,60 @@ export default function Guardrails() {
           value={rupeesShort(g.total_compliance_avoided_paise)}
           tone="good"
           icon={<ShieldIcon size={17} />}
-          sub="Priced at ₹500 per avoided consent, DND, quiet-hours or frequency violation"
+          sub={`Priced at ₹${p.defaults.compliance_risk_paise / 100} per avoided consent, DND, quiet-hours or frequency violation`}
         />
       </div>
+
+      <Card
+        title="Whose rules these are"
+        hint={p.source ? "config/policy.yaml" : "built-in defaults, no config file"}
+        icon={<ShieldIcon size={18} />}
+      >
+        <p className="text-[14px] text-[var(--ink-2)] leading-relaxed">
+          The gates below enforce these numbers; they do not own them. Quiet
+          hours are{" "}
+          <span className="text-[var(--ink)]">
+            {hour(p.defaults.quiet_start_ist)}–{hour(p.defaults.quiet_end_ist)}
+          </span>{" "}
+          because that is the Indian norm, and a merchant elsewhere disagrees
+          before they finish reading it. So they live in configuration and
+          resolve per merchant.
+        </p>
+
+        {merchants.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {merchants.map(([id, m]) => (
+              <div
+                key={id}
+                className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[12.5px] border-t border-[var(--line)] pt-2"
+              >
+                <span className="font-mono text-[var(--ink)]">{id}</span>
+                <span className="text-[var(--ink-3)]">
+                  quiet {hour(m.quiet_start_ist)}–{hour(m.quiet_end_ist)}
+                </span>
+                <span className="text-[var(--ink-3)]">
+                  {m.max_touches_7d}/week
+                </span>
+                <span className="text-[var(--ink-3)]">
+                  floor ₹{m.min_viable_amount_paise / 100}
+                </span>
+                <span className="text-[var(--ink-3)]">
+                  cap {Math.round(m.max_cost_ratio * 100)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Callout>
+          Same engine, different answers. A ₹250 order clears the default floor
+          and is refused for a merchant whose support costs more — and the gate
+          explains itself in that merchant&apos;s terms rather than quoting a
+          constant from the source.
+        </Callout>
+      </Card>
+
+      <div className="mt-6" />
 
       <Card
         title="Every gate, including the quiet ones"
@@ -100,7 +169,7 @@ export default function Guardrails() {
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-[var(--ink-3)] mb-2">{GATE_PURPOSE[gate.gate]}</p>
+              <p className="text-xs text-[var(--ink-3)] mb-2">{purpose[gate.gate]}</p>
               <Bar value={gate.blocks} max={maxBlocks} tone={gate.blocks ? "guard" : "muted"} />
               {Object.keys(gate.reasons).length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">

@@ -66,7 +66,7 @@ from deterministic templates and payment links are simulated and flagged as
 such. **You do not need our credentials to reproduce our numbers.**
 
 ```bash
-make test      # 219 tests
+make test      # 244 tests
 make verify    # recompute the audit chain from genesis
 make webhook   # post a real Razorpay payment.failed at a running API
 make api       # backend on :8000
@@ -162,6 +162,30 @@ Payment links are minted live against Razorpay test mode up to a small budget
 and simulated beyond it — every link is stored with a flag saying which it is,
 and the dashboard shows it, so nothing on screen implies more live integration
 than there is.
+
+### One engine, many merchants
+
+Quiet hours are 9 PM to 9 AM because that is the Indian norm. A merchant in
+another country disagrees before they finish reading it. So the gates enforce
+the rules but do not own them — the numbers live in
+[`config/policy.yaml`](config/policy.yaml) and resolve per merchant.
+
+```bash
+python backend/scripts/send_webhook.py --amount 25000
+#   allowed   True
+
+python backend/scripts/send_webhook.py --amount 25000 --merchant merchant_uk_subs
+#   allowed   False   blocked by G02
+#   BLOCK G06 AMOUNT_BAND   Rs 250.00 is under the Rs 300 floor
+```
+
+Same order, same code, different answer — and the refusal explains itself in
+that merchant's terms rather than quoting a constant from our source. Deleting
+the file is legitimate: the defaults are the values the committed evaluation
+was produced with. A *typo* is not — unknown keys are rejected at load, because
+a rule you believe you set and did not is worse than no rule.
+
+Detail in [docs/policy.md](docs/policy.md).
 
 ### The batch is not the only way in
 
@@ -307,6 +331,7 @@ backend/
       detector.py          issuer health, z-scored per issuer
       ladder.py            the cheapest useful next step
       policy.py            the eleven gates
+      config.py            their numbers, per merchant, from config/policy.yaml
       orchestrator.py      the tick loop
       ledger.py            hash-chained audit trail
       live.py              one real webhook, through those same functions
@@ -317,8 +342,11 @@ backend/
     models.py  db.py       schema and session
   scripts/                 seed, run-batch, report, verify-ledger, render-voice,
                            send-webhook
-  tests/                   219 tests
+  tests/                   244 tests
   demo.db                  committed and pre-seeded, so a clone shows these numbers
+
+config/
+  policy.yaml              the gates' numbers, per merchant
 
 examples/
   payment_failed.json      a real Razorpay webhook, for `make webhook`

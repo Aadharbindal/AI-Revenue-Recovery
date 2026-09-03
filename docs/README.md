@@ -8,6 +8,7 @@ for the numbers. Everything here is the detail behind those two.
 | Document | What it answers |
 | --- | --- |
 | [decision-table.md](decision-table.md) | How a failure becomes a recovery class, and why the rule order is load-bearing |
+| [policy.md](policy.md) | The gates' numbers as configuration rather than code, and how one engine serves merchants with different rules |
 | [guardrails.md](guardrails.md) | The eleven gates, what each refuses, and the trap planted in the dataset to make it fire |
 | [assumptions.md](assumptions.md) | Every number we chose rather than measured — base rates, costs, policy constants — with the reasoning, and the four we are least confident about |
 

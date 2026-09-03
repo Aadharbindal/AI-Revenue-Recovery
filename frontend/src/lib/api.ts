@@ -326,6 +326,30 @@ export interface SensitivityReport {
   conclusion_holds: boolean;
 }
 
+export interface PolicyConfig {
+  quiet_start_ist: number;
+  quiet_end_ist: number;
+  voice_start_ist: number;
+  voice_end_ist: number;
+  max_touches_per_case: number;
+  max_touches_24h: number;
+  max_touches_7d: number;
+  cooldown_hours: number;
+  max_cost_ratio: number;
+  min_viable_amount_paise: number;
+  compliance_risk_paise: number;
+  voice_min_amount_paise: number;
+  tier_cost_rupees: Record<string, number>;
+  label: string;
+}
+
+export interface PolicyBook {
+  /** null when no config file is present, which is a supported way to run. */
+  source: string | null;
+  defaults: PolicyConfig;
+  merchants: Record<string, PolicyConfig>;
+}
+
 export interface HealthStatus {
   status: string;
   simulation: {
@@ -346,6 +370,7 @@ export interface HealthStatus {
 /* ------------------------------------------------------------- endpoints */
 
 export const fetchHealth = () => get<HealthStatus>("/health");
+export const fetchPolicy = () => get<PolicyBook>("/policy");
 export const fetchSummary = () => get<ExperimentResult>("/metrics/summary");
 export const fetchGuardrails = () => get<GuardrailReport>("/metrics/guardrails");
 export const fetchDelivery = () => get<DeliveryReport>("/metrics/delivery");

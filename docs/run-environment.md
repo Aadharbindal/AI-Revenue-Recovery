@@ -8,22 +8,24 @@ This file records the run that produced the committed database.
 
 | Source | Count |
 | --- | --- |
-| Written by the model | 502 |
-| Deterministic template | 186 |
+| Written by the model | 463 |
+| Deterministic template | 225 |
 
 ### Drafts the validator refused
 
 The guardrail doing its job against a live model, not a fixture.
 
-- `MISSING_OPTOUT_INSTRUCTION` x18
+- `MISSING_TOKEN:amount` x25
+- `MISSING_OPTOUT_INSTRUCTION` x12
+- `TOO_LONG:402>400` x6
 - `MISSING_AUTOMATED_CALL_DISCLOSURE` x5
-- `MISSING_TOKEN:amount` x1
+- `TOO_LONG:171>160` x4
 
 ### Calls the provider did not answer
 
 A free tier rate-limits. The batch finished anyway, which is the entire point of having a deterministic fallback.
 
-- `PROVIDER_ERROR:RateLimitError` x162
+- `PROVIDER_ERROR:RateLimitError` x173
 
 ## Payment links
 
