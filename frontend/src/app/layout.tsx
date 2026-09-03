@@ -36,7 +36,20 @@ export default function RootLayout({
       >
         <div className="flex h-screen overflow-hidden">
           <Nav />
-          <main className="flex-1 overflow-y-auto grid-plane">{children}</main>
+          {/*
+            overflow-x-clip, not just overflow-y-auto. Setting one axis to a
+            non-visible value makes the other compute to auto, so this element
+            was a horizontal scroll container by accident - any element that
+            reached past the content box slid the entire page sideways. Clip
+            rather than hidden: hidden would make this a scroll container for
+            both axes and break sticky positioning inside it.
+
+            Wide content - tables, charts, code - scrolls in its own container
+            rather than moving the page.
+          */}
+          <main className="flex-1 overflow-y-auto overflow-x-clip grid-plane">
+            {children}
+          </main>
         </div>
       </body>
     </html>

@@ -220,14 +220,19 @@ body {
 .hero-wash::before {
   content: "";
   position: absolute;
-  inset: -20% -10% auto -10%;
+  /* Stays inside its container. A first version bled -10% past each edge for
+     a softer falloff and put 65px of horizontal scroll on <main>, which has
+     overflow-y:auto and therefore computes overflow-x to auto as well - so
+     the whole page slid sideways for a glow nobody asked to scroll to. The
+     same softness comes from widening the gradient instead. */
+  inset: -20% 0 auto 0;
   height: 420px;
   z-index: -1;
   pointer-events: none;
   background: radial-gradient(
-    60% 100% at 22% 0%,
-    color-mix(in oklab, var(--recovered) 11%, transparent),
-    transparent 70%
+    85% 100% at 18% 0%,
+    color-mix(in oklab, var(--recovered) 12%, transparent),
+    transparent 72%
   );
 }
 
