@@ -47,10 +47,18 @@ each combination is attempted exactly once, so **688 rendered messages cost 64
 provider calls** — eleven messages per call. And when the provider is down,
 rate-limits us, or returns malformed JSON, the batch does not stop.
 
-On the committed run the validator rejected **102 live model drafts**: 78 that
-omitted `{{amount}}`, 12 voice scripts with no opt-out, and 12 SMS one
-character over the 160-character limit. Each fell back to a deterministic
-template with the reason recorded on the action row.
+The validator rejects live model drafts on every run — a missing `{{amount}}`
+token, a voice script with no opt-out, an SMS one character over the
+160-character limit. Each falls back to a deterministic template with the
+reason recorded on the action row.
+
+**How many, on the run that produced the committed database, is in
+[docs/run-environment.md](docs/run-environment.md).** The figure is not quoted
+here on purpose: it depends on which drafts the provider returned and how
+often a free tier rate-limited us, so it changes between runs and a number
+written into this file would be stale by the next one. The recovery statistics
+do not depend on it — a message that fell back to a template recovers exactly
+as often as one the model wrote.
 
 ---
 
@@ -142,8 +150,7 @@ and nothing else; the per-recovery figure is comparable to something.
 **Real:** the classifier, the eleven-gate policy engine, the escalation ladder,
 the issuer-health detector, the LLM validator, the hash-chained audit ledger,
 the treatment/control assignment, the statistics, the Razorpay test-mode
-Payment Links API integration, the model calls (469 of the 688 message bodies
-were written by one), and the rendered voice audio.
+Payment Links API integration, the model calls, and the rendered voice audio.
 
 Which of those actually ran on the committed batch — how many bodies the model
 wrote, how many payment links were minted live — is recorded in

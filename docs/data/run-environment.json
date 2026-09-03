@@ -43,13 +43,13 @@
       }
     }
   ],
-  "messages_from_llm": 359,
-  "messages_from_fallback": 329,
+  "messages_from_llm": 539,
+  "messages_from_fallback": 149,
   "fallback_reasons": {
-    "MISSING_TOKEN:amount": 40,
-    "PROVIDER_ERROR:RateLimitError": 263,
-    "TOO_LONG:211>160": 8,
-    "MISSING_OPTOUT_INSTRUCTION": 18
+    "MISSING_TOKEN:amount": 34,
+    "PROVIDER_ERROR:RateLimitError": 92,
+    "MISSING_OPTOUT_INSTRUCTION": 18,
+    "MISSING_AUTOMATED_CALL_DISCLOSURE": 5
   },
   "real_payment_links": 0
 }
