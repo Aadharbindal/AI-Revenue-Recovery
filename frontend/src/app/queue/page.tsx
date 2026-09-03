@@ -71,7 +71,7 @@ export default function Queue() {
     <Page
       crumbs={[{ label: "RecoverOS" }, { label: "Review Queue", accent: true }]}
       title="The human-review queue"
-      subtitle="Risk-blocked cases the agent will never auto-contact. Routed to a person, billed at ₹50 of their time, and — until this page — left with nowhere to go."
+      subtitle={`Risk-blocked cases the agent will never auto-contact. Routed to a person, billed at ${rupees(e.cost_per_review_paise)} of their time, and — until this page — left with nowhere to go.`}
     >
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <Stat

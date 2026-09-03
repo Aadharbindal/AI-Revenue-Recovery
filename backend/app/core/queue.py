@@ -147,6 +147,12 @@ def economics(db: Session) -> dict:
         "amount_at_risk_paise": at_risk,
         "spend_paise": spend,
         "share_of_total_spend": (spend / total_spend) if total_spend else 0.0,
+        # What one review actually costs under the policy in force. Served
+        # rather than written into the page, because it is a merchant's number
+        # now - a page quoting Rs 50 would be confidently wrong for anyone who
+        # changed it.
+        "cost_per_review_paise": config.active().tier_cost_paise.get(
+            HUMAN_TIER, 0),
 
         # What our assumptions imply. Labelled, because it is a projection.
         "assumed_marginal_lift": lift,

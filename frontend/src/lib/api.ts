@@ -346,6 +346,7 @@ export interface QueueEconomics {
   amount_at_risk_paise: number;
   spend_paise: number;
   share_of_total_spend: number;
+  cost_per_review_paise: number;
   assumed_marginal_lift: number;
   expected_incremental_paise: number;
   measured_lift: number;
