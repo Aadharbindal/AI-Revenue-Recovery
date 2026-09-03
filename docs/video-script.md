@@ -206,9 +206,12 @@ python backend/scripts/send_webhook.py --forge
 > "**Six of these nine lanes are not statistically significant.** And the most
 > expensive lane — the human review queue, seventeen hundred rupees,
 > eighty-nine percent of my total spend — has a confidence interval that
-> includes zero. On this batch, routing risk-blocked cases to a person is not
-> paying for itself. That's a finding about my own design, and it's in
-> EVALUATION.md."
+> includes zero. That's not the same as losing money: in expectation it looks
+> worth it, and thirty-four cases against nine controls simply can't tell
+> either way. So I built it a break-even instead — below two thousand five
+> hundred rupees, a call can't pay for itself no matter how big the sample
+> gets, and that's the triage that doesn't need more data. That's a finding
+> about my own design, and it's in EVALUATION.md."
 
 ---
 

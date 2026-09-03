@@ -66,15 +66,45 @@ enforced against a batch's history rather than a merchant's live one.
 
 Listed because they are real, not because they are small.
 
-### The human-review queue is not carrying its cost
+### The human-review queue cannot be measured yet — and now has somewhere to go
 
-Tier 4 is 88% of total spend for a lift whose confidence interval includes zero.
-On this batch, the honest conclusion is that routing risk-blocked cases to a
-person is not paying for itself — either the queue needs triage so only the
-high-value cases reach it, or the ₹50 estimate for agent time is wrong.
+Tier 4 is 89% of total spend for a lift whose confidence interval includes
+zero, and an earlier version of this document read that as "not paying for
+itself". That is an overreach: `app/core/queue.py` computes it properly and
+the honest statement is different.
 
-This is the finding the per-class table exists to surface, and it points at our
-own design.
+```
+34 treatment cases, 9 control
+agent time spent            Rs 1,700
+expected incremental        Rs 4,541   (2% marginal lift on Rs 2.27 L)
+to detect a 2% lift         387 cases per arm
+```
+
+In expectation the lane looks worth it — the expected return exceeds the
+spend. What is true is that 34 against 9 cannot distinguish a two-point lift
+from nothing. "We cannot tell, and here is what it would take to find out" is
+a different and more defensible claim than "it loses money", and the
+dashboard's `/queue` page states it that way now.
+
+What *is* independent of sample size: cases below a computed break-even
+(`cost ÷ marginal lift` — ₹2,500 at the shipped price) cannot pay back a call
+however many of them you have. Six of the thirty-four were below it. That
+triage is real and worth doing regardless of what a larger sample would show.
+
+The queue itself was also missing entirely — cases were routed to a person,
+billed for their attention, and left with no way to work them or close one.
+`/api/queue` and the **Review Queue** page now serve it, with four operator
+actions (`APPROVE_CONTACT`, `WRITE_OFF`, `MARK_PAID_OFFLINE`, `HOLD`), each
+requiring a named operator and a typed reason, each landing in the same
+hash-chained ledger as the agent's own decisions. The rule that matters most:
+an operator cannot act on a control-arm case — the call raises rather than
+silently no-op'ing, because the measured lift is the difference against those
+163 untouched cases, and one worked control case would destroy the experiment
+in a way that would be indistinguishable afterwards from the policy having
+worked.
+
+This is the finding the per-class table exists to surface, and it points at
+our own design — just not the design flaw we first thought it was.
 
 ### Six of nine classes are not statistically significant
 

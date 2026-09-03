@@ -66,7 +66,7 @@ from deterministic templates and payment links are simulated and flagged as
 such. **You do not need our credentials to reproduce our numbers.**
 
 ```bash
-make test      # 276 tests
+make test      # 299 tests
 make verify    # recompute the audit chain from genesis
 make webhook   # post a real Razorpay payment.failed at a running API
 make api       # backend on :8000
@@ -125,7 +125,11 @@ their own, and that share is not ours to claim. Only the difference is.
 sample size, and the most expensive lane is not the one carrying the result** —
 the human-review queue is 89% of total spend for a lift whose interval includes
 zero. That is in `EVALUATION.md` too, because it is the finding, not a
-footnote.
+footnote. It is not the same as the lane losing money — in expectation it
+looks worth it, and 34 cases against 9 controls simply cannot tell either way.
+[docs/future-scope.md](docs/future-scope.md) has the arithmetic, and the
+dashboard's **Review Queue** page has the break-even triage that *is*
+independent of sample size.
 
 The headline number to argue with is **₹20.30 per incremental recovery**, not
 the ROI multiple. The multiple is large because the cost model counts messaging
@@ -368,6 +372,8 @@ backend/
       config.py            their numbers, per merchant, from config/policy.yaml
       orchestrator.py      the tick loop
       ledger.py            hash-chained audit trail
+      queue.py             the human-review queue and its economics
+      operator.py          what a person may do to a case, and the record of it
       live.py              one real webhook, through those same functions
     ingest/                read somebody else's CSV, plan against it
     llm/                   prompts, validator, fallbacks, written-to-spoken
@@ -377,7 +383,7 @@ backend/
     models.py  db.py       schema and session
   scripts/                 seed, run-batch, report, verify-ledger, render-voice,
                            send-webhook
-  tests/                   276 tests
+  tests/                   299 tests
   demo.db                  committed and pre-seeded, so a clone shows these numbers
 
 config/

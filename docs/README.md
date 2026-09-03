@@ -17,6 +17,7 @@ for the numbers. Everything here is the detail behind those two.
 | Document | What it answers |
 | --- | --- |
 | [../EVALUATION.md](../EVALUATION.md) | Lift, confidence intervals, per-class breakdown, guardrail value, the honest exception list. **Reproducible** — CI regenerates it on every push and fails if it drifts |
+| [future-scope.md](future-scope.md) | What's cut, and the human-review queue's economics computed properly |
 | [bring-your-own-data.md](bring-your-own-data.md) | Pointing the policy at a real backlog: a CSV in, a plan out, and why the recovery figure is a range |
 | [sensitivity.md](sensitivity.md) | How far the seventy-three chosen numbers can be wrong before the conclusion changes. **Reproducible** — CI regenerates it and fails if it drifts |
 | [run-environment.md](run-environment.md) | Message provenance and live payment links. **Not reproducible**, and not meant to be: it depends on which services answered |

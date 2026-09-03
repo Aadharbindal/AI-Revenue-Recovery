@@ -326,6 +326,64 @@ export interface SensitivityReport {
   conclusion_holds: boolean;
 }
 
+export interface QueueRow {
+  case_id: string;
+  entity_type: string;
+  entity_id: string;
+  customer_id: string;
+  amount_at_risk_paise: number;
+  rule_id: string | null;
+  state: string;
+  touches_used: number;
+  spend_paise: number;
+  exception_reason: string | null;
+  below_break_even: boolean;
+}
+
+export interface QueueEconomics {
+  cases: number;
+  control_cases: number;
+  amount_at_risk_paise: number;
+  spend_paise: number;
+  share_of_total_spend: number;
+  assumed_marginal_lift: number;
+  expected_incremental_paise: number;
+  measured_lift: number;
+  ci_lower: number;
+  ci_upper: number;
+  is_significant: boolean;
+  required_n_per_arm: number | null;
+  break_even_paise: number | null;
+  below_break_even: number;
+  below_break_even_paise: number;
+  reading: string;
+}
+
+export interface QueueAction {
+  action: string;
+  describes: string;
+  closes_case: boolean;
+}
+
+export interface QueueResponse {
+  queue: QueueRow[];
+  economics: QueueEconomics;
+  actions: QueueAction[];
+}
+
+export interface OperatorActionResult {
+  case_id: string;
+  action: string;
+  operator: string;
+  reason: string;
+  state: string;
+  resolution: string | null;
+  recorded_at: string;
+  ledger_hash: string;
+  executed: boolean;
+  note: string;
+}
+
 export interface IngestPlan {
   cases: number;
   amount_at_risk_paise: number;
@@ -424,6 +482,28 @@ export const fetchTimeline = () => get<Timeline>("/metrics/timeline");
 export const fetchFlow = () => get<Flow>("/metrics/flow");
 export const fetchSensitivity = () =>
   get<SensitivityReport>("/metrics/sensitivity");
+
+export const fetchQueue = () => get<QueueResponse>("/queue");
+
+export async function postQueueAction(
+  caseId: string,
+  action: string,
+  operator: string,
+  reason: string,
+): Promise<OperatorActionResult> {
+  const res = await fetch(`${API_BASE}/queue/${caseId}/act`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, operator, reason }),
+  });
+  const body = await res.json();
+  if (!res.ok) {
+    // The 422 carries the actionable message: a missing field, an
+    // already-closed case, or the control-arm guard.
+    throw new Error(body.detail ?? `${res.status} ${res.statusText}`);
+  }
+  return body as OperatorActionResult;
+}
 export const fetchExperiment = () =>
   get<{ overall: ExperimentResult; per_class: ClassRow[] }>("/metrics/experiment");
 export const fetchFunnel = (arm = "treatment") =>

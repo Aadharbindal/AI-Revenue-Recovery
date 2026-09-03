@@ -329,3 +329,20 @@ export function UploadIcon(props: IconProps) {
     </Svg>
   );
 }
+
+/**
+ * Review queue — a person, checked.
+ *
+ * Distinguishes the human-review page from the other list pages (Cases,
+ * Guardrails) by putting a person in the mark, since this is the one page
+ * where a person acts rather than the agent.
+ */
+export function UserCheckIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3.5 20c0-3.6 2.5-6 5.5-6s5.5 2.4 5.5 6" />
+      <path d="M15.5 12.5 17.5 14.5 21 10.5" />
+    </Svg>
+  );
+}
