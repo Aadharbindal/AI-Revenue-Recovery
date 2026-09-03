@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import ActivityRibbon from "@/components/charts/ActivityRibbon";
 import DivergenceChart from "@/components/charts/DivergenceChart";
+import GrossSplit from "@/components/charts/GrossSplit";
 import MoneyFlow from "@/components/charts/MoneyFlow";
 import {
   BanIcon,
@@ -94,13 +95,19 @@ export default function CommandCenter() {
       subtitle="Failed payments, abandoned carts and overdue invoices — worked for seven simulated days behind eleven policy gates, and measured against a fifth of the batch the agent was never allowed to touch."
     >
       {/* ── The hero. Two numbers, and the honest one is bigger. ───────── */}
-      <div className="grid lg:grid-cols-[1.15fr_1fr] gap-4 mb-4">
+      <div className="grid lg:grid-cols-[1.15fr_1fr] gap-5 mb-5 hero-wash stagger">
         <HeroStat
           label="Incremental revenue recovered"
           value={rupeesShort(e.value_incremental_paise)}
           aside={`of ${rupeesShort(e.amount_at_risk_paise)} at risk`}
           tone="good"
           icon={<TrendingUpIcon size={17} />}
+          figure={
+            <GrossSplit
+              gross={e.treatment_gross_recovered_paise}
+              incremental={e.value_incremental_paise}
+            />
+          }
         >
           Gross recovery was{" "}
           <span className="text-[var(--recovered)] font-mono">
@@ -114,7 +121,7 @@ export default function CommandCenter() {
           to claim. Only the difference is.
         </HeroStat>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-5">
           <Stat
             label="Net incremental lift"
             value={pp(e.net_lift)}
@@ -189,7 +196,7 @@ export default function CommandCenter() {
         </Callout>
       </Card>
 
-      <div className="grid lg:grid-cols-[1.3fr_1fr] gap-4">
+      <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5 stagger">
         <Card
           title="Where the money went"
           hint="The filled part is the share of that lane's money that came back"

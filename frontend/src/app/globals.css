@@ -117,3 +117,147 @@ body {
   scrollbar-width: none;          /* Firefox */
   -ms-overflow-style: none;       /* legacy Edge */
 }
+
+/* ==========================================================================
+   Display type
+   ==========================================================================
+   Instrument Serif, and only where it earns its place: page titles and the
+   figures a viewer is meant to stop on. It is a high-contrast face, so at
+   14px it thins out and loses to Inter; at 40px+ it is the reason the page
+   does not look like every other dashboard.
+
+   Optical sizing: large serif text needs tighter tracking than its metrics
+   give by default, or it reads loose and accidental.
+*/
+.display {
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.018em;
+  line-height: 1.04;
+}
+
+/* The hero figure. Serif numerals rather than mono: this is one number a
+   viewer stops on, not a column that has to align, and mono here reads as
+   telemetry when it should read as a result. */
+.display-figure {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 0.94;
+  font-variant-numeric: lining-nums;
+}
+
+/* ==========================================================================
+   Entrance
+   ==========================================================================
+   The first two seconds decide whether somebody keeps looking. Everything
+   arriving at once is the same as nothing arriving; a short stagger makes the
+   page assemble itself, which reads as deliberate.
+
+   Kept small on purpose - 8px and 380ms. Anything larger becomes a thing the
+   viewer waits through on the second visit.
+*/
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.rise {
+  animation: rise 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger children by position. Capped at eight: past that the last card is
+   arriving half a second late and the effect turns into a delay. */
+.stagger > *              { animation: rise 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 45ms; }
+.stagger > *:nth-child(3) { animation-delay: 90ms; }
+.stagger > *:nth-child(4) { animation-delay: 135ms; }
+.stagger > *:nth-child(5) { animation-delay: 180ms; }
+.stagger > *:nth-child(6) { animation-delay: 225ms; }
+.stagger > *:nth-child(7) { animation-delay: 270ms; }
+.stagger > *:nth-child(n+8) { animation-delay: 300ms; }
+
+/* A line that draws itself. The divergence chart is the one picture that
+   carries the argument, and watching the two arms separate says more than
+   seeing them already apart. */
+@keyframes draw {
+  from { stroke-dashoffset: var(--draw-length, 2000); }
+  to   { stroke-dashoffset: 0; }
+}
+
+.draw {
+  stroke-dasharray: var(--draw-length, 2000);
+  animation: draw 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ==========================================================================
+   Surfaces that respond
+   ==========================================================================
+   A card that does nothing on hover reads as an image of a card. The lift is
+   1px - enough to register, not enough to shift the layout underneath.
+*/
+.card-lift {
+  transition:
+    border-color 180ms ease,
+    transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms ease;
+}
+
+.card-lift:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
+}
+
+/* A wash behind the hero, so the most important figure on the page sits on
+   something rather than floating on the same flat plane as everything else. */
+.hero-wash {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-wash::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 420px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    60% 100% at 22% 0%,
+    color-mix(in oklab, var(--recovered) 11%, transparent),
+    transparent 70%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .stagger > *,
+  .draw {
+    animation: none;
+  }
+  .draw { stroke-dasharray: none; }
+  .card-lift { transition: none; }
+  .card-lift:hover { transform: none; }
+}
+
+/* The divergence chart reveals left to right, as if the seven days were
+   passing. A stroke-dash draw was the other option and could not work: the
+   control line is dashed for identity, and animating dashoffset would have
+   fought that. A sweep reveals the wedge, the quiet-hour bands and both lines
+   together, which is also truer - they happened together. */
+@keyframes sweep {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.chart-sweep {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: sweep 1200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-sweep { animation: none; }
+}

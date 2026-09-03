@@ -34,8 +34,8 @@ export function Page({
 }) {
   const showRail = rail ?? Boolean(crumbs);
   return (
-    <div className="px-8 py-8 lg:px-10 max-w-[1400px]">
-      <header className="mb-7 flex items-start justify-between gap-8">
+    <div className="px-8 py-10 lg:px-12 lg:py-12 max-w-[1400px]">
+      <header className="mb-9 flex items-start justify-between gap-8 rise">
         <div>
           {crumbs && <Breadcrumb crumbs={crumbs} />}
           {kicker && !crumbs && (
@@ -60,11 +60,11 @@ export function Page({
                 />
               </>
             )}
-            <h1 className="text-[26px] leading-tight font-semibold tracking-tight text-[var(--ink)]">
+            <h1 className="display text-[38px] lg:text-[44px] text-[var(--ink)]">
               {title}
             </h1>
             {subtitle && (
-              <p className="text-sm text-[var(--ink-2)] mt-2 max-w-3xl leading-relaxed">
+              <p className="text-[14.5px] text-[var(--ink-2)] mt-3 max-w-[62ch] leading-relaxed">
                 {subtitle}
               </p>
             )}
@@ -133,7 +133,7 @@ export function Card({
   const hex = TONE_HEX[tone];
   return (
     <section
-      className={`border border-[var(--line)] rounded-xl ${className}`}
+      className={`border border-[var(--line)] rounded-xl card-lift ${className}`}
       style={cardStyle(hex)}
     >
       {title && (
@@ -309,7 +309,7 @@ export function Stat({
   const hex = TONE_HEX[tone];
   return (
     <div
-      className="border border-[var(--line)] rounded-lg p-5 flex flex-col"
+      className="border border-[var(--line)] rounded-lg p-5 flex flex-col card-lift"
       style={cardStyle(hex)}
     >
       {icon && (
@@ -348,6 +348,7 @@ export function HeroStat({
   aside,
   tone = "good",
   icon,
+  figure,
   children,
 }: {
   label: string;
@@ -355,12 +356,18 @@ export function HeroStat({
   aside?: string;
   tone?: keyof typeof TONES;
   icon?: ReactNode;
+  /**
+   * Optional graphic between the figure and its explanation. The card
+   * stretches to match whatever sits beside it, and that space is better
+   * spent showing the claim than left empty.
+   */
+  figure?: ReactNode;
   children?: ReactNode;
 }) {
   const hex = TONE_HEX[tone];
   return (
     <div
-      className="border border-[var(--line)] rounded-lg p-6 flex flex-col"
+      className="border border-[var(--line)] rounded-lg p-6 flex flex-col card-lift"
       style={cardStyle(hex)}
     >
       <div className="flex items-center gap-3 mb-5">
@@ -371,18 +378,25 @@ export function HeroStat({
       </div>
 
       <div
-        className={`font-mono font-semibold tracking-tight tnum text-[46px] leading-none ${TONES[tone]} tick-in`}
+        className={`display-figure text-[64px] lg:text-[76px] ${TONES[tone]}`}
       >
         {value}
       </div>
       {aside && (
-        <div className="text-sm text-[var(--ink-3)] mt-3.5">{aside}</div>
+        <div className="text-[13.5px] text-[var(--ink-3)] mt-3">{aside}</div>
       )}
+
+      {figure}
 
       {children && (
         <>
-          <div className="border-t border-[var(--line)] mt-5 mb-4" />
-          <div className="text-sm text-[var(--ink-2)] leading-relaxed">
+          {/* mt-auto, not a fixed margin. The card stretches to match the stat
+              grid beside it, and a fixed gap left the difference pooled in the
+              middle - the figure and its explanation both floating with dead
+              space between them. Pinned to the bottom, the space reads as
+              breathing room instead. */}
+          <div className="border-t border-[var(--line)] mt-auto pt-5" />
+          <div className="text-[14px] text-[var(--ink-2)] leading-relaxed">
             {children}
           </div>
         </>

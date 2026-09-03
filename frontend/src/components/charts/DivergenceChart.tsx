@@ -185,6 +185,18 @@ export default function DivergenceChart({
           </text>
         ))}
 
+        {/*
+          Everything that describes the run is revealed by one sweep, so the
+          two arms are seen separating rather than found already apart.
+        */}
+        <defs>
+          <clipPath id="divergence-reveal">
+            <rect className="chart-sweep" x={PAD.left} y={0}
+                  width={plotW} height="100%" />
+          </clipPath>
+        </defs>
+
+        <g clipPath="url(#divergence-reveal)">
         {/* The lift, as area */}
         <path d={wedge} fill="var(--treatment)" opacity={0.16} />
 
@@ -220,6 +232,7 @@ export default function DivergenceChart({
           strokeWidth={2}
           strokeLinejoin="round"
         />
+        </g>
 
         {/* Direct labels — identity never rests on colour alone */}
         <g>
