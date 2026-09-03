@@ -66,7 +66,7 @@ from deterministic templates and payment links are simulated and flagged as
 such. **You do not need our credentials to reproduce our numbers.**
 
 ```bash
-make test      # 272 tests
+make test      # 276 tests
 make verify    # recompute the audit chain from genesis
 make webhook   # post a real Razorpay payment.failed at a running API
 make api       # backend on :8000
@@ -377,7 +377,7 @@ backend/
     models.py  db.py       schema and session
   scripts/                 seed, run-batch, report, verify-ledger, render-voice,
                            send-webhook
-  tests/                   272 tests
+  tests/                   276 tests
   demo.db                  committed and pre-seeded, so a clone shows these numbers
 
 config/
