@@ -1,6 +1,7 @@
 "use client";
 
 import { rupeesShort } from "@/lib/format";
+import { Figure } from "@/components/ui";
 
 /**
  * Gross recovery, split into what the agent added and what would have
@@ -55,7 +56,7 @@ export default function GrossSplit({
           />
           <span className="text-[var(--ink-2)]">the agent added</span>
           <span className="font-mono tnum text-[var(--ink)]">
-            {rupeesShort(incremental)}
+            <Figure value={rupeesShort(incremental)} />
           </span>
         </span>
         <span className="flex items-baseline gap-2 text-[12.5px]">
@@ -65,7 +66,7 @@ export default function GrossSplit({
           />
           <span className="text-[var(--ink-3)]">would have happened anyway</span>
           <span className="font-mono tnum text-[var(--ink-3)]">
-            {rupeesShort(natural)}
+            <Figure value={rupeesShort(natural)} />
           </span>
         </span>
       </div>
