@@ -377,10 +377,8 @@ export function HeroStat({
         </span>
       </div>
 
-      <div
-        className={`display-figure text-[64px] lg:text-[76px] ${TONES[tone]}`}
-      >
-        {value}
+      <div className={`display-figure text-[64px] lg:text-[76px] ${TONES[tone]}`}>
+        <Figure value={value} />
       </div>
       {aside && (
         <div className="text-[13.5px] text-[var(--ink-3)] mt-3">{aside}</div>
@@ -402,6 +400,40 @@ export function HeroStat({
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * A currency figure, set the way a financial figure should be.
+ *
+ * "₹18.34 L" is three things, not one: a symbol, a number, and a unit. Setting
+ * all three at 76px made the ₹ and the L compete with the digits — the symbol
+ * read as a character in the number and the unit read as another digit, which
+ * is why it looked mismatched rather than merely large.
+ *
+ * The number keeps full size. The symbol drops to 62% and lifts slightly, the
+ * way a currency mark is set in print. The unit drops too and takes the muted
+ * ink, because a lakh is a scale, not a value.
+ *
+ * Falls back to plain text for anything that is not a rupee figure — the audit
+ * card puts the word VALID through this same slot.
+ */
+function Figure({ value }: { value: string }) {
+  const match = /^(₹)([\d.,]+)(\s*(?:Cr|L|K)?)$/.exec(value.trim());
+  if (!match) return <>{value}</>;
+
+  const [, symbol, number, unit] = match;
+  return (
+    <span className="inline-flex items-baseline">
+      <span className="text-[0.6em] mr-[0.05em] opacity-70">{symbol}</span>
+      <span>{number}</span>
+      {unit.trim() && (
+        // Same ink as the figure, held back by opacity rather than recoloured.
+        // A grey unit beside a green number reads as a separate fact; the
+        // lakh belongs to the number and should look like it does.
+        <span className="text-[0.5em] ml-[0.14em] opacity-55">{unit.trim()}</span>
+      )}
+    </span>
   );
 }
 
