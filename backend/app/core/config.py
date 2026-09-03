@@ -98,6 +98,12 @@ class PolicyConfig:
                 raise PolicyConfigError(
                     f"{name} must be an hour from 0 to 23, got {hour!r}")
 
+        if self.quiet_start_ist == self.quiet_end_ist:
+            raise PolicyConfigError(
+                f"quiet_start_ist and quiet_end_ist are both "
+                f"{self.quiet_start_ist}; that means either always quiet or "
+                "never quiet, and there is no way to tell which was meant")
+
         if self.voice_start_ist >= self.voice_end_ist:
             raise PolicyConfigError(
                 f"voice_start_ist ({self.voice_start_ist}) must be before "

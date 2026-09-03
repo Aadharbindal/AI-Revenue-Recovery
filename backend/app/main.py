@@ -11,7 +11,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import audit, batch, cases, health, live, llm, metrics, timeline
+from app.api import (audit, batch, cases, health, ingest, live, llm, metrics,
+                     timeline)
 from app.db import Base, engine
 
 
@@ -67,6 +68,7 @@ app.include_router(batch.router)
 app.include_router(audit.router)
 app.include_router(llm.router)
 app.include_router(live.router)
+app.include_router(ingest.router)
 
 
 @app.get("/")

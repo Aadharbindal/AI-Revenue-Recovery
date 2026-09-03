@@ -313,3 +313,19 @@ export function SlidersIcon(props: IconProps) {
     </Svg>
   );
 }
+
+/**
+ * Plan a backlog — a file with an arrow into it.
+ *
+ * A cloud would say "upload to our servers", which is the opposite of what
+ * this page does: the file is parsed in memory and dropped.
+ */
+export function UploadIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" />
+      <path d="M14 3v5h5" />
+      <path d="M12 17v-5M9.5 14.5 12 12l2.5 2.5" />
+    </Svg>
+  );
+}

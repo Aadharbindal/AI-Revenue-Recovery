@@ -326,6 +326,48 @@ export interface SensitivityReport {
   conclusion_holds: boolean;
 }
 
+export interface IngestPlan {
+  cases: number;
+  amount_at_risk_paise: number;
+  would_contact: number;
+  would_not_contact: number;
+  no_action_possible: number;
+  planned_spend_paise: number;
+  by_class: { recovery_class: string; cases: number }[];
+  by_rule: { rule_id: string; cases: number }[];
+  by_channel: { channel: string; messages: number }[];
+  refusals: {
+    gate: string;
+    blocks: number;
+    amount_paise: number;
+    reasons: Record<string, number>;
+  }[];
+  projection: {
+    at_our_assumptions_paise: number;
+    low_paise: number;
+    high_paise: number;
+    band: [number, number];
+    basis: string;
+  };
+  policy: string;
+  evaluated_at_ist_hour: number;
+  assumptions: string[];
+}
+
+export interface IngestResult {
+  filename: string;
+  rows_read: number;
+  rows_usable: number;
+  rows_rejected: number;
+  amount_unit: string;
+  mapping: Record<string, string>;
+  unmapped_headers: string[];
+  problems: { line: number; column: string | null; problem: string }[];
+  plan: IngestPlan;
+  /** Always false. The upload is parsed in memory and dropped. */
+  stored: boolean;
+}
+
 export interface PolicyConfig {
   quiet_start_ist: number;
   quiet_end_ist: number;

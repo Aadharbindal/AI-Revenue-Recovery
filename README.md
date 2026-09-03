@@ -66,7 +66,7 @@ from deterministic templates and payment links are simulated and flagged as
 such. **You do not need our credentials to reproduce our numbers.**
 
 ```bash
-make test      # 244 tests
+make test      # 272 tests
 make verify    # recompute the audit chain from genesis
 make webhook   # post a real Razorpay payment.failed at a running API
 make api       # backend on :8000
@@ -162,6 +162,40 @@ Payment links are minted live against Razorpay test mode up to a small budget
 and simulated beyond it — every link is stored with a flag saying which it is,
 and the dashboard shows it, so nothing on screen implies more live integration
 than there is.
+
+### Point it at your own data
+
+Every case in the batch came from `generate_dataset(seed=42)`, and the fair
+objection is that the logic might only work because it wrote its own inputs.
+So:
+
+```bash
+python backend/scripts/plan.py examples/failed_payments.csv
+```
+
+```
+243 rows read, 240 usable, 3 rejected      amount column read as rupees
+  line 243: amount 'N/A' is not a number
+
+would contact      203 of 240
+day-one spend      Rs 786.90              against Rs 36.7 L at risk
+REFUSED BY  G06    8   COST_EXCEEDS_BAND x5, BELOW_VIABLE_FLOOR x3
+PROJECTED          Rs 4.13 L to Rs 7.62 L
+```
+
+Your column names, not ours: `Order ID`, `Amount (INR)` and `Failure Reason`
+all resolve, the mapping is reported back, and every rejected row names its
+line. **Nothing is stored** - an export is customer data, so it is parsed in
+memory and dropped, and no identifier from the file appears anywhere in the
+response.
+
+Recovery is a **range**, never a number. We know what we would *do* to your
+backlog; we do not know what you would *recover*, because nobody ran the
+experiment on your customers. The band is the one
+[docs/sensitivity.md](docs/sensitivity.md) establishes.
+
+There is a drag-and-drop version on the dashboard's **Plan a Backlog** page.
+Detail in [docs/bring-your-own-data.md](docs/bring-your-own-data.md).
 
 ### One engine, many merchants
 
@@ -335,6 +369,7 @@ backend/
       orchestrator.py      the tick loop
       ledger.py            hash-chained audit trail
       live.py              one real webhook, through those same functions
+    ingest/                read somebody else's CSV, plan against it
     llm/                   prompts, validator, fallbacks, written-to-spoken
     sim/                   dataset generator, outcome oracle (the agent cannot read it)
     analytics/             experiment statistics, sensitivity sweep, reports
@@ -342,7 +377,7 @@ backend/
     models.py  db.py       schema and session
   scripts/                 seed, run-batch, report, verify-ledger, render-voice,
                            send-webhook
-  tests/                   244 tests
+  tests/                   272 tests
   demo.db                  committed and pre-seeded, so a clone shows these numbers
 
 config/
@@ -350,6 +385,7 @@ config/
 
 examples/
   payment_failed.json      a real Razorpay webhook, for `make webhook`
+  failed_payments.csv      a merchant-shaped export, for `make plan`
 
 frontend/src/
   app/                     command centre, live run, cases, case timeline,

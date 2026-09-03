@@ -108,6 +108,21 @@ def g01_consent(case, action, ctx) -> GateResult:
     return GateResult("G01", "CONSENT", True, "OK", "Consent verified for this channel")
 
 
+def _in_quiet_window(hour: int, p) -> bool:
+    """
+    Is this hour inside the no-contact window?
+
+    Two shapes, and getting this wrong is silent. India's window wraps
+    midnight - 21:00 to 09:00 - so it is `hour >= start or hour < end`. A
+    merchant in another timezone may have one that does not wrap, like 02:00
+    to 14:00, and the wrapping form is true at *every* hour for those bounds:
+    the merchant could never be contacted at all, and nothing would say so.
+    """
+    if p.quiet_start_ist > p.quiet_end_ist:
+        return hour >= p.quiet_start_ist or hour < p.quiet_end_ist
+    return p.quiet_start_ist <= hour < p.quiet_end_ist
+
+
 def g02_quiet_hours(case, action, ctx) -> GateResult:
     if action.channel in ("silent", "human"):
         return GateResult("G02", "QUIET_HOURS", True, "NOT_APPLICABLE",
@@ -115,7 +130,7 @@ def g02_quiet_hours(case, action, ctx) -> GateResult:
 
     p = _policy(ctx)
     hour = ist_hour(ctx["now"])
-    if hour >= p.quiet_start_ist or hour < p.quiet_end_ist:
+    if _in_quiet_window(hour, p):
         return GateResult("G02", "QUIET_HOURS", False, "QUIET_HOURS",
                           f"{hour:02d}:00 IST is inside the "
                           f"{p.quiet_start_ist}:00-{p.quiet_end_ist}:00 "

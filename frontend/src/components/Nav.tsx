@@ -15,7 +15,7 @@ import {
   FlaskIcon,
   LedgerIcon,
   ShieldIcon, SlidersIcon,
-  TerminalIcon,
+  TerminalIcon, UploadIcon,
 } from "@/components/icons";
 import Logo from "@/components/Logo";
 import { fetchHealth, type HealthStatus } from "@/lib/api";
@@ -42,6 +42,7 @@ const GROUPS: { label: string; links: { href: string; label: string; icon: IconT
     links: [
       { href: "/run", label: "Live Batch", icon: ActivityIcon },
       { href: "/cases", label: "Cases", icon: CasesIcon },
+      { href: "/plan", label: "Plan a Backlog", icon: UploadIcon },
       { href: "/guardrails", label: "Guardrails", icon: ShieldIcon },
       { href: "/validator", label: "LLM Guardrail", icon: BanIcon },
       { href: "/audit", label: "Audit Ledger", icon: LedgerIcon },
