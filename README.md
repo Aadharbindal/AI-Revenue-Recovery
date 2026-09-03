@@ -6,7 +6,7 @@ Razorpay AI Buildathon — Track 03, AI Revenue Recovery.
 
 A failed payment is not one problem. A bank outage, an empty balance, an
 expired card, a lapsed subscription mandate and a risk block all show up as
-"payment failed", and the right response to each is different — one of them is
+"payment failed", and the right response to each is different. One of them is
 *do nothing*. RecoverOS routes each failure on Razorpay's own error taxonomy,
 runs a bounded escalation ladder behind eleven policy gates, and measures what
 it actually recovered against a control arm it never touched.
@@ -16,7 +16,7 @@ It covers all three lanes in the brief:
 | Lane | How it is handled |
 | --- | --- |
 | **Payment failures** | Routed on `error_source` + `error_step` into silent retry, timed retry, method switch, nudge, mandate repair, human review, or stop |
-| **Checkout abandonment** | Its own class — no error to diagnose and nothing to retry, so a shorter two-touch ladder |
+| **Checkout abandonment** | Its own class: no error to diagnose and nothing to retry, so a shorter two-touch ladder |
 | **Overdue receivables** | Email → WhatsApp → Hinglish voice call, with a promise-to-pay hold |
 
 ---
@@ -31,7 +31,7 @@ The model does exactly one job in the money path: it writes a message
 recipient, and never decides whether to send.
 
 This is enforced mechanically, not by prompt. `app/llm/validator.py` rejects any
-draft containing a literal digit — write "your payment of ₹1,499 is pending" and
+draft containing a literal digit. Write "your payment of ₹1,499 is pending" and
 the draft is discarded and a deterministic template is used instead. The only
 way a rupee figure reaches a customer is Python substituting `{{amount}}` with a
 value read from the database.
@@ -44,10 +44,10 @@ plus what would really have been sent. It needs no API key.
 
 Two consequences. Templates are cached per (class, tier, language, channel) and
 each combination is attempted exactly once, so **688 rendered messages cost 64
-provider calls** — eleven messages per call. And when the provider is down,
+provider calls**: eleven messages per call. And when the provider is down,
 rate-limits us, or returns malformed JSON, the batch does not stop.
 
-The validator rejects live model drafts on every run — a missing `{{amount}}`
+The validator rejects live model drafts on every run: a missing `{{amount}}`
 token, a voice script with no opt-out, an SMS one character over the
 160-character limit. Each falls back to a deterministic template with the
 reason recorded on the action row.
@@ -57,7 +57,7 @@ reason recorded on the action row.
 here on purpose: it depends on which drafts the provider returned and how
 often a free tier rate-limited us, so it changes between runs and a number
 written into this file would be stale by the next one. The recovery statistics
-do not depend on it — a message that fell back to a template recovers exactly
+do not depend on it. A message that fell back to a template recovers exactly
 as often as one the model wrote.
 
 ---
@@ -69,7 +69,7 @@ make demo
 ```
 
 That seeds the database, runs the batch, and regenerates `EVALUATION.md`. It
-needs Python 3.9+ and no API keys — with an empty `.env` the message bodies come
+needs Python 3.9+ and no API keys. With an empty `.env` the message bodies come
 from deterministic templates and payment links are simulated and flagged as
 such. **You do not need our credentials to reproduce our numbers.**
 
@@ -133,7 +133,7 @@ their own, and that share is not ours to claim. Only the difference is.
 sample size, and the most expensive lane is not the one carrying the result** —
 the human-review queue is 89% of total spend for a lift whose interval includes
 zero. That is in `EVALUATION.md` too, because it is the finding, not a
-footnote. It is not the same as the lane losing money — in expectation it
+footnote. It is not the same as the lane losing money: in expectation it
 looks worth it, and 34 cases against 9 controls simply cannot tell either way.
 [docs/future-scope.md](docs/future-scope.md) has the arithmetic, and the
 dashboard's **Review Queue** page has the break-even triage that *is*
@@ -152,15 +152,15 @@ the issuer-health detector, the LLM validator, the hash-chained audit ledger,
 the treatment/control assignment, the statistics, the Razorpay test-mode
 Payment Links API integration, the model calls, and the rendered voice audio.
 
-Which of those actually ran on the committed batch — how many bodies the model
-wrote, how many payment links were minted live — is recorded in
+Which of those actually ran on the committed batch, how many bodies the model
+wrote and how many payment links were minted live, is recorded in
 [docs/run-environment.md](docs/run-environment.md). That file is deliberately
 *not* reproducible: it depends on which services answered, and the recovery
 statistics do not depend on it at all.
 
 **Simulated:** whether a customer paid. Outcomes come from a seeded oracle whose
 base rates are written down and justified in
-[docs/assumptions.md](docs/assumptions.md). No decision module imports it — the
+[docs/assumptions.md](docs/assumptions.md). No decision module imports it. The
 classifier, ladder, policy engine and detector cannot see it, so nothing in it
 can change what the agent does. The orchestrator calls it only to record what
 happened, after it has already acted. No real customer was contacted and no real
@@ -170,7 +170,7 @@ money moved.
 moves every one of them across a wide range and reports what the answer does.
 
 Payment links are minted live against Razorpay test mode up to a small budget
-and simulated beyond it — every link is stored with a flag saying which it is,
+and simulated beyond it. Every link is stored with a flag saying which it is,
 and the dashboard shows it, so nothing on screen implies more live integration
 than there is.
 
@@ -212,7 +212,7 @@ Detail in [docs/bring-your-own-data.md](docs/bring-your-own-data.md).
 
 Quiet hours are 9 PM to 9 AM because that is the Indian norm. A merchant in
 another country disagrees before they finish reading it. So the gates enforce
-the rules but do not own them — the numbers live in
+the rules but do not own them. The numbers live in
 [`config/policy.yaml`](config/policy.yaml) and resolve per merchant.
 
 ```bash
@@ -224,10 +224,10 @@ python backend/scripts/send_webhook.py --amount 25000 --merchant merchant_uk_sub
 #   BLOCK G06 AMOUNT_BAND   Rs 250.00 is under the Rs 300 floor
 ```
 
-Same order, same code, different answer — and the refusal explains itself in
+Same order, same code, different answer, and the refusal explains itself in
 that merchant's terms rather than quoting a constant from our source. Deleting
 the file is legitimate: the defaults are the values the committed evaluation
-was produced with. A *typo* is not — unknown keys are rejected at load, because
+was produced with. A *typo* is not: unknown keys are rejected at load, because
 a rule you believe you set and did not is worse than no rule.
 
 Detail in [docs/policy.md](docs/policy.md).
@@ -242,7 +242,7 @@ make api                      # in one shell
 make webhook                  # in another
 ```
 
-That posts [`examples/payment_failed.json`](examples/payment_failed.json) — a
+That posts [`examples/payment_failed.json`](examples/payment_failed.json), a
 real Razorpay `payment.failed` envelope — signed the way Razorpay signs it, and
 prints the whole decision:
 
