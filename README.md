@@ -4,6 +4,13 @@
 
 Razorpay AI Buildathon — Track 03, AI Revenue Recovery.
 
+**[Five-minute walkthrough](https://drive.google.com/file/d/1wwkmH4nRU6fQw_ZnrZ_S-Njp-xuG_6hh/view?usp=sharing)**  ·  **[Live dashboard](https://ai-revenue-recovery-hazel.vercel.app)**  ·  **[API](https://recoveros-api-dah4.onrender.com/api/health)**
+
+The live API runs on a free tier that sleeps after fifteen minutes, so the
+first request can take up to a minute to wake it. The repository does not
+depend on it: `make demo` reproduces every number below from a clean clone,
+with no API keys.
+
 A failed payment is not one problem. A bank outage, an empty balance, an
 expired card, a lapsed subscription mandate and a risk block all show up as
 "payment failed", and the right response to each is different. One of them is
