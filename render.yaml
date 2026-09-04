@@ -34,3 +34,9 @@ services:
         sync: false
       - key: GROQ_API_KEY
         sync: false
+      # Only used by POST /api/live/payment-failed. With it set an unsigned or
+      # altered body is refused; without it the decision still runs and the
+      # response reports signature_verified false rather than implying a check
+      # that did not happen.
+      - key: RZP_WEBHOOK_SECRET
+        sync: false
